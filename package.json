@@ -1,0 +1,32 @@
+{
+  "name": "fidelio",
+  "version": "1.0.0",
+  "description": "To build:",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "run-dev-elm": "parcel watch elm/index.js --out-dir static/elm",
+    "run-dev-ihp": "./start",
+    "start": "concurrently --raw \"npm:run-dev-*\"",
+    "build": "parcel build elm/index.js --out-dir static/elm"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/parry84/fidelio.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/parry84/fidelio/issues"
+  },
+  "homepage": "https://github.com/parry84/fidelio#readme",
+  "dependencies": {
+    "node-elm-compiler": "^5.0.5",
+    "parcel-bundler": "^1.12.4"
+  },
+  "devDependencies": {
+    "concurrently": "^5.3.0",
+    "elm-hot": "^1.1.5"
+  }
+}

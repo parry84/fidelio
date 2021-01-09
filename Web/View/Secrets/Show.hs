@@ -9,12 +9,16 @@ instance View ShowView where
     html ShowView { .. } = [hsx|
         <nav>
             <ol class="breadcrumb">
-                <li class="breadcrumb-item"><a href={SecretsAction}>Secrets</a></li>
-                <li class="breadcrumb-item active">Show Secret</li>
+                <li class="breadcrumb-item">
+                    <a href={SecretsAction}>Secrets</a>
+                </li>
+                <li class="breadcrumb-item active">
+                    Show Secret
+                </li>
             </ol>
         </nav>
         <h1>Show Secret</h1>
-        <p>{secret}</p>
+        {secretWidget secret}
     |]
 
     json ShowView { .. } = toJSON secret

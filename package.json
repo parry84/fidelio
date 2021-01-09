@@ -7,6 +7,7 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "run-dev-elm": "parcel watch elm/index.js --out-dir static/elm",
     "run-dev-ihp": "./start",
+    "gen-types": "nix-shell --run './Application/Script/GenerateElmTypes.hs'",
     "start": "concurrently --raw \"npm:run-dev-*\"",
     "build": "parcel build elm/index.js --out-dir static/elm"
   },

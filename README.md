@@ -10,6 +10,12 @@ npm install elm-hot concurrently --save-dev
 # To launch:
 
 ```bash
-./start
+npm start
 ```
 
+# To dev:
+
+1. Regenerate Elm types:
+```bash
+npm gen-types
+```

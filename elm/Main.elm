@@ -1,11 +1,14 @@
 module Main exposing (main)
 
+import Api.Generated exposing (Secret, Widget(..), widgetDecoder)
 import Browser
-import Html exposing (Html, p, text)
+import Html exposing (Html, div, h1, h2, p, pre, text)
+import Json.Decode as D
 
 
-type alias Model =
-    {}
+type Model
+    = SecretModel Secret
+    | ErrorModel String
 
 
 type Msg
@@ -26,10 +29,46 @@ subscriptions model =
 
 view : Model -> Html msg
 view model =
-    p [] [ text "That is the password... for admittance. But may I ask, what is the password... for the house?" ]
+    div []
+        [ text "<🔑>"
+        , widgetView model
+        , text "</🔑>"
+        ]
 
 
-main : Program () Model Msg
+widgetView : Model -> Html msg
+widgetView model =
+    case model of
+        ErrorModel errorMsg ->
+            errorView errorMsg
+
+        SecretModel secret ->
+            secretView secret
+
+
+errorView : String -> Html msg
+errorView errorMsg =
+    pre [] [ text "Widget Error: ", text errorMsg ]
+
+
+secretView : Secret -> Html msg
+secretView secret =
+    div []
+        [ h2 [] [ text secret.payload ]
+        ]
+
+
+showReview : Maybe String -> Html msg
+showReview maybeReview =
+    case maybeReview of
+        Just review ->
+            text ("Your book review: " ++ review)
+
+        Nothing ->
+            text "You have not reviewed this book"
+
+
+main : Program D.Value Model Msg
 main =
     Browser.element
         { init = init
@@ -39,8 +78,25 @@ main =
         }
 
 
-init : () -> ( Model, Cmd Msg )
-init _ =
-    ( {}
+init : D.Value -> ( Model, Cmd Msg )
+init flags =
+    ( initialModel flags
     , Cmd.none
     )
+
+
+initialModel : D.Value -> Model
+initialModel flags =
+    case D.decodeValue widgetDecoder flags of
+        Ok widget ->
+            widgetFlagToModel widget
+
+        Err error ->
+            ErrorModel (D.errorToString error)
+
+
+widgetFlagToModel : Widget -> Model
+widgetFlagToModel widget =
+    case widget of
+        SecretWidget book ->
+            SecretModel book

@@ -43,7 +43,7 @@ instance Controller SecretsController where
                 Right secret -> do
                     secret <- secret |> createRecord
                     setSuccessMessage "Secret created"
-                    redirectTo SecretsAction
+                    render ShowView { .. }
 
     action DeleteSecretAction { secretId } = do
         secret <- fetch secretId

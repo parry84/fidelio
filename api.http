@@ -1,14 +1,15 @@
-GET http://localhost:8004/Secrets
+GET http://localhost:8001/Secrets
 Accept: application/json
 
 ###
 
-GET http://localhost:8004/ShowSecret?secretId=d10f3af0-3293-4d44-b012-86138e2e8519
+GET http://localhost:8001/ShowSecret?secretId=d10f3af0-3293-4d44-b012-86138e2e8519
 Accept: application/json
 
 ###
 
-POST http://localhost:8004/CreateSecret
+POST http://localhost:8001/CreateSecret
+Accept: application/json
 Content-Type: application/json
 
 {

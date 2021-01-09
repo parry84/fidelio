@@ -1,5 +1,6 @@
 module Web.View.Secrets.Index where
 import Web.View.Prelude
+import Data.Aeson
 
 data IndexView = IndexView { secrets :: [Secret] }
 
@@ -26,6 +27,13 @@ instance View IndexView where
         </div>
     |]
 
+    json IndexView { .. } = toJSON secrets
+    
+instance ToJSON Secret where
+    toJSON secret = object
+        [ "id" .= get #id secret
+        , "payload" .= get #payload secret
+        ]
 
 renderSecret secret = [hsx|
     <tr>

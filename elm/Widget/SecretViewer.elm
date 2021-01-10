@@ -81,20 +81,22 @@ view model =
     case model.payload of
         Nothing ->
             div []
-                [ h2 [] [ text "🔑 Insert the password to decrypt the secret:" ]
-                , label []
-                    [ text "Password"
-                    , input
-                        [ type_ "password"
-                        , placeholder "Password"
-                        , onInput SetPassword
-                        , value model.password
+                [ h2 [] [ text "🔑 This message requires a passphrase:" ]
+                , p [] [
+                    label []
+                        [ text "Password:"
+                        , input
+                            [ type_ "password"
+                            , placeholder "Enter the passphrase here"
+                            , onInput SetPassword
+                            , value model.password
+                            ]
+                            []
                         ]
-                        []
-                    ]
+                ]
                 , button
                     [ onClick SubmitForm ]
-                    [ text "View" ]
+                    [ text "View secret" ]
                 ]
 
         Just plaintext ->

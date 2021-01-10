@@ -92,25 +92,26 @@ view model =
             div []
                 [ h2 []
                     [ text "🔑 Create a new secret:" ]
-                , label []
-                    [ text "Payload"
-                    , input
-                        [ type_ "text"
-                        , placeholder "Email"
+                , p [] [
+                        textarea 
+                        [ cols 40
+                        , rows 5
+                        , placeholder "Secret content goes here..."
                         , onInput SetPayload
-                        , value model.payload
                         ]
                         []
                     ]
-                , label []
-                    [ text "Password"
-                    , input
-                        [ type_ "text"
-                        , placeholder "Password"
-                        , onInput SetPassword
-                        , value model.password
+                , p [] [
+                    label []
+                        [ text "Password:"
+                        , input
+                            [ type_ "text"
+                            , placeholder "A word or phrase that's difficult to guess"
+                            , onInput SetPassword
+                            , value model.password
+                            ]
+                            []
                         ]
-                        []
                     ]
                 , button
                     [ onClick SubmitForm ]
@@ -118,7 +119,7 @@ view model =
                 ]
         Just secret ->
             let
-                link = "https://fidelio.ihpcloud.com/ShowSecret?secretId=" ++ secret.id
+                link = "https://fidelio.ihpapp.com/ShowSecret?secretId=" ++ secret.id
             in
                 div []
                     [ h2 []

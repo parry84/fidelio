@@ -16,8 +16,7 @@ type alias Model =
     { payload : Maybe String
     , password : Maybe String
     , secret : Maybe Secret
-    , seed : Seed
-    , seedReady : Bool
+    , seed : Maybe Seed
     }
 
 type FormField
@@ -30,8 +29,7 @@ initialModel =
     { payload = Nothing
     , password = Nothing
     , secret = Nothing
-    , seed = initialSeed 0
-    , seedReady = False
+    , seed = Nothing
     }
 
 init : Model -> ( Model, Cmd Msg )
@@ -47,7 +45,6 @@ subscriptions _ =
 type Msg
     = NoOp
     | InitializeSeed Posix
-    | SeedInitialized ()
     | SetPayload String
     | SetPassword String
     | SubmitForm
@@ -61,27 +58,25 @@ update msg model =
             ( model, Cmd.none )
 
         InitializeSeed posix ->
-            ( { model | seed = initialSeed <| Time.posixToMillis posix }
-            , Task.perform SeedInitialized <| Task.succeed ()
+            ( { model | seed = Just (initialSeed <| Time.posixToMillis posix) }
+            , Cmd.none
             )
 
-        SeedInitialized _ ->
-            ( { model | seedReady = True }, Cmd.none )
-
         SetPayload payload ->
-            ( { model | payload = Just payload }, Cmd.none )
+            ( { model | payload = Just payload }, Task.perform InitializeSeed Time.now )
 
         SetPassword password ->
-            ( { model | password = Just password }, Cmd.none )
+            ( { model | password = Just password }, Task.perform InitializeSeed Time.now )
 
         SubmitForm ->
-            case (model.password, model.payload) of
-                (Just passphrase, Just plaintext) -> 
+            case (model.password, model.payload, model.seed) of
+                (Just passphrase, Just plaintext, Just seed) ->
+
                     let
-                        ( ciphertext, seed ) =
-                            case Strings.encrypt model.seed passphrase plaintext of
+                        ( ciphertext, seed1 ) =
+                            case Strings.encrypt seed passphrase plaintext of
                                 Err msg1 ->
-                                    ( "Error: " ++ msg1, model.seed)
+                                    ( "Error: " ++ msg1, seed)
 
                                 Ok textAndSeed ->
                                     textAndSeed
@@ -89,7 +84,7 @@ update msg model =
                         ( { model | secret = Nothing }
                         , postSecretAction (Secret "" ciphertext) Response
                         )
-                (_, _) -> 
+                (_, _, _) -> 
                     ( model, Cmd.none )
 
         Response (Ok response) ->
@@ -127,9 +122,7 @@ view model =
                             []
                         ]
                     ]
-                , button
-                    ([] |> appendIf model.seedReady (onClick SubmitForm))
-                    [ text "Create link" ]
+                , buttonView model.seed
                 ]
         Just secret ->
             let
@@ -141,9 +134,10 @@ view model =
                     , a [ href link ] [ text link ]
                     ]
 
-appendIf : Bool -> a -> List a -> List a
-appendIf flag value list =
-    if flag == True then
-        list ++ [ value ]
-    else
-        list
+buttonView : Maybe Seed -> Html Msg
+buttonView seed = 
+    case seed of
+        Just _ ->
+            button [ onClick SubmitForm ] [ text "Create link" ]
+        Nothing ->
+            button [] [ text "Create link" ]

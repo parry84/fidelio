@@ -37,7 +37,6 @@ update msg model =
             Widget.SecretCreator.update subMsg subModel
                 |> updateWith SecretCreatorModel GotSecretCreatorMsg model
 
-
         ( WidgetErrorMsg, ErrorModel _ ) ->
             ( model, Cmd.none )
 

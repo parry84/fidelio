@@ -16,7 +16,7 @@ In order to achieve a higher security level, the passphrase is never sent to the
 ## Dependencies ##
 * Any recent Linux (we use Debian, Ubuntu, and CentOS)
 * Nix (unless you are NixOS)
-* Npm
+* Yarn
 * Elm
 
 ## Setup  ##
@@ -25,13 +25,13 @@ In order to achieve a higher security level, the passphrase is never sent to the
 2. Install Nix and IHP as explained here: https://ihp.digitallyinduced.com/Guide/installation.html
 3. install Elm according to the following steps:
 ```bash
-npm install node-elm-compiler parcel-bundler
-npm install elm-hot concurrently --save-dev
+yarn add node-elm-compiler parcel-bundler
+yarn add --dev elm-hot concurrently
 ```
 4. launch:
 
 ```bash
-npm start
+yarn start
 ```
 
 This project uses `devenv`. To update the environment after changin Nix configuration:

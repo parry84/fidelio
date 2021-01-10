@@ -34,6 +34,11 @@ npm install elm-hot concurrently --save-dev
 npm start
 ```
 
+This project uses `devenv`. To update the environment after changin Nix configuration:
+```bash
+nix-shell --run 'make -B .envrc'
+```
+
 ## Architecture ##
 
 The application is composed by following components:

@@ -5,7 +5,7 @@ data WelcomeView = WelcomeView
 
 instance View WelcomeView where
     html WelcomeView = [hsx|
-        <h1>Fidelio 🎭</h1>
-        <div class="elm">Elm app not loaded 💩</div>
-        <script src="elm/index.js"></script>
+        <h1><a href="/">🎭 Fidelio</a></h1>
+        <cite>That is the password... for admittance. But may I ask, what is the password... for the house?</cite>
+        {secretCreatorWidget}
     |]

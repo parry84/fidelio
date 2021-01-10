@@ -3,7 +3,8 @@
 module Application.Helper.View (
     -- To use the built in login:
     -- module IHP.LoginSupport.Helper.View
-    secretWidget,
+    secretViewerWidget,
+    secretCreatorWidget,
     Widget(..),
 ) where
 
@@ -17,7 +18,8 @@ import GHC.Generics
 import Language.Haskell.To.Elm
 
 data Widget
-  = SecretWidget SecretJSON
+  = SecretViewerWidget SecretJSON
+  | SecretCreatorWidget
   deriving ( Generic
            , Aeson.ToJSON
            , SOP.Generic
@@ -46,9 +48,14 @@ instance HasElmEncoder Aeson.Value Widget where
 
 -- Widgets
 
-secretWidget :: Secret -> Html
-secretWidget secret = [hsx|
+secretViewerWidget :: Secret -> Html
+secretViewerWidget secret = [hsx|
     <div  data-flags={encode secretData} class="elm"></div>
 |]
     where
-        secretData :: Widget = SecretWidget $ secretToJSON secret
+        secretData :: Widget = SecretViewerWidget $ secretToJSON secret
+
+secretCreatorWidget :: Html
+secretCreatorWidget = [hsx|
+    <div data-flags={encode SecretCreatorWidget} class="elm"></div>
+|]

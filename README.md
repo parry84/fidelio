@@ -15,6 +15,11 @@ npm start
 
 # To dev:
 
+The application is composed by:
+- an IHP MVC container
+- an Elm secret generation application: `SecretCreatorWidget`
+- an Elm secret decryption application: `SecretViewerWidget`
+
 1. Regenerate Elm types:
 ```bash
 npm gen-types

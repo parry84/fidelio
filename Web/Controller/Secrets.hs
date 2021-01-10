@@ -42,7 +42,6 @@ instance Controller SecretsController where
                 Left secret -> render NewView { .. } 
                 Right secret -> do
                     secret <- secret |> createRecord
-                    setSuccessMessage "Secret created"
                     render ShowView { .. }
 
     action DeleteSecretAction { secretId } = do

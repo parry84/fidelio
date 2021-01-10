@@ -1,13 +1,13 @@
 module Api.Http exposing (..)
 
-import Api.Generated exposing (Book, bookDecoder)
+import Api.Generated exposing (Secret, secretEncoder, secretDecoder)
 import Http
 import Json.Decode as D
 
 
 getSecretsAction :
     String
-    -> (Result Http.Error (List Book) -> msg)
+    -> (Result Http.Error (List Secret) -> msg)
     -> Cmd msg
 getSecretsAction searchTerm msg =
     ihpRequest
@@ -15,7 +15,20 @@ getSecretsAction searchTerm msg =
         , headers = []
         , url = "/Secrets?searchTerm=" ++ searchTerm
         , body = Http.emptyBody
-        , expect = Http.expectJson msg (D.list bookDecoder)
+        , expect = Http.expectJson msg (D.list secretDecoder)
+        }
+
+postSecretAction :
+    Secret
+    -> (Result Http.Error Secret -> msg)
+    -> Cmd msg
+postSecretAction secret msg =
+    ihpRequest
+        { method = "POST"
+        , headers = []
+        , url = "/CreateSecret"
+        , body = Http.jsonBody <| secretEncoder secret
+        , expect = Http.expectJson msg secretDecoder
         }
 
 

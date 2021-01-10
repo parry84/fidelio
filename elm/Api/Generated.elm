@@ -6,19 +6,34 @@ import Json.Encode
 
 
 type Widget 
-    = SecretWidget Secret
+    = SecretViewerWidget Secret
+    | SecretCreatorWidget 
 
 
 widgetEncoder : Widget -> Json.Encode.Value
 widgetEncoder a =
     case a of
-        SecretWidget b ->
-            secretEncoder b
+        SecretViewerWidget b ->
+            Json.Encode.object [ ("tag" , Json.Encode.string "SecretViewerWidget")
+            , ("contents" , secretEncoder b) ]
+        
+        SecretCreatorWidget ->
+            Json.Encode.object [ ("tag" , Json.Encode.string "SecretCreatorWidget") ]
 
 
 widgetDecoder : Json.Decode.Decoder Widget
 widgetDecoder =
-    Json.Decode.map SecretWidget secretDecoder
+    Json.Decode.field "tag" Json.Decode.string |>
+    Json.Decode.andThen (\a -> case a of
+        "SecretViewerWidget" ->
+            Json.Decode.succeed SecretViewerWidget |>
+            Json.Decode.Pipeline.required "contents" secretDecoder
+        
+        "SecretCreatorWidget" ->
+            Json.Decode.succeed SecretCreatorWidget
+        
+        _ ->
+            Json.Decode.fail "No matching constructor")
 
 
 type alias Secret  =

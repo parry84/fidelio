@@ -1,71 +1,91 @@
 module Main exposing (main)
 
-import Api.Generated exposing (Secret, Widget(..), widgetDecoder)
+import Api.Generated
+    exposing
+        ( Secret
+        , Widget(..)
+        , secretDecoder
+        , widgetDecoder
+        )
 import Browser
-import Html exposing (Html, div, h1, h2, p, pre, text)
+import Html exposing (..)
 import Json.Decode as D
+import Widget.SecretViewer
+import Widget.SecretCreator
 
 
 type Model
-    = SecretModel Secret
+    = SecretModel Widget.SecretViewer.Model
+    | SecretCreatorModel Widget.SecretCreator.Model
     | ErrorModel String
 
 
 type Msg
-    = NoOp
+    = GotSecretMsg Widget.SecretViewer.Msg
+    | GotSecretCreatorMsg Widget.SecretCreator.Msg
+    | WidgetErrorMsg
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
-    case msg of
-        NoOp ->
+    case ( msg, model ) of
+        ( GotSecretMsg subMsg, SecretModel secret ) ->
+            Widget.SecretViewer.update subMsg secret
+                |> updateWith SecretModel GotSecretMsg model
+
+        ( GotSecretCreatorMsg subMsg, SecretCreatorModel subModel) ->
+            Widget.SecretCreator.update subMsg subModel
+                |> updateWith SecretCreatorModel GotSecretCreatorMsg model
+
+
+        ( WidgetErrorMsg, ErrorModel _ ) ->
+            ( model, Cmd.none )
+
+        _ ->
             ( model, Cmd.none )
 
 
+updateWith :
+    (subModel -> Model)
+    -> (subMsg -> Msg)
+    -> Model
+    -> ( subModel, Cmd subMsg )
+    -> ( Model, Cmd Msg )
+updateWith toModel toMsg model ( subModel, subCmd ) =
+    ( toModel subModel, Cmd.map toMsg subCmd )
+
+
 subscriptions : Model -> Sub Msg
-subscriptions model =
-    Sub.none
+subscriptions parentModel =
+    case parentModel of
+        SecretModel secret ->
+            Sub.map GotSecretMsg 
+                (Widget.SecretViewer.subscriptions secret)
+
+        SecretCreatorModel subModel ->
+            Sub.map GotSecretCreatorMsg 
+                (Widget.SecretCreator.subscriptions subModel)
+
+        ErrorModel err ->
+            Sub.none
 
 
-view : Model -> Html msg
+view : Model -> Html Msg
 view model =
-    div []
-        [ text "<🔑>"
-        , widgetView model
-        , text "</🔑>"
-        ]
-
-
-widgetView : Model -> Html msg
-widgetView model =
     case model of
         ErrorModel errorMsg ->
             errorView errorMsg
 
+        SecretCreatorModel subModel ->
+            Html.map GotSecretCreatorMsg (Widget.SecretCreator.view subModel)
+
         SecretModel secret ->
-            secretView secret
+            Html.map GotSecretMsg (Widget.SecretViewer.view secret)
 
 
 errorView : String -> Html msg
 errorView errorMsg =
     pre [] [ text "Widget Error: ", text errorMsg ]
-
-
-secretView : Secret -> Html msg
-secretView secret =
-    div []
-        [ h2 [] [ text secret.payload ]
-        ]
-
-
-showReview : Maybe String -> Html msg
-showReview maybeReview =
-    case maybeReview of
-        Just review ->
-            text ("Your book review: " ++ review)
-
-        Nothing ->
-            text "You have not reviewed this book"
 
 
 main : Program D.Value Model Msg
@@ -98,5 +118,8 @@ initialModel flags =
 widgetFlagToModel : Widget -> Model
 widgetFlagToModel widget =
     case widget of
-        SecretWidget book ->
-            SecretModel book
+        SecretViewerWidget secret ->
+            SecretModel (Widget.SecretViewer.initialModel secret)
+
+        SecretCreatorWidget ->
+            SecretCreatorModel Widget.SecretCreator.initialModel

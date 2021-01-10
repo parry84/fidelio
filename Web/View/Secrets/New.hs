@@ -5,18 +5,8 @@ data NewView = NewView { secret :: Secret }
 
 instance View NewView where
     html NewView { .. } = [hsx|
-        <nav>
-            <ol class="breadcrumb">
-                <li class="breadcrumb-item"><a href={SecretsAction}>Secrets</a></li>
-                <li class="breadcrumb-item active">New Secret</li>
-            </ol>
-        </nav>
-        <h1>New Secret</h1>
-        {renderForm secret}
+        <h1><a href="/">🎭 Fidelio</a></h1>
+        <cite>That is the password... for admittance. But may I ask, what is the password... for the house?</cite>
+        {secretCreatorWidget}
     |]
 
-renderForm :: Secret -> Html
-renderForm secret = formFor secret [hsx|
-    {(textField #payload)}
-    {submitButton}
-|]

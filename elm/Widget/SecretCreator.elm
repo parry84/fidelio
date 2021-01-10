@@ -8,13 +8,18 @@ import Html.Events exposing (..)
 import Crypto.Strings as Strings
 import Random exposing (Seed, initialSeed)
 import Http
+import Task
+import Time exposing (Posix)
 
 
 type alias Model =
-    { payload : String
-    , password : String
+    { payload : Maybe String
+    , password : Maybe String
     , secret : Maybe Secret
+    , seed : Seed
+    , seedReady : Bool
     }
+
 type FormField
     = Payload
     | Password
@@ -22,15 +27,16 @@ type FormField
 
 initialModel : Model
 initialModel =
-    { payload = ""
-    , password = ""
+    { payload = Nothing
+    , password = Nothing
     , secret = Nothing
+    , seed = initialSeed 0
+    , seedReady = False
     }
 
-
-init : Model -> ( Model, Cmd msg )
+init : Model -> ( Model, Cmd Msg )
 init model =
-    ( model, Cmd.none )
+    ( model, Task.perform InitializeSeed Time.now )
 
 
 subscriptions : Model -> Sub Msg
@@ -40,6 +46,8 @@ subscriptions _ =
 
 type Msg
     = NoOp
+    | InitializeSeed Posix
+    | SeedInitialized ()
     | SetPayload String
     | SetPassword String
     | SubmitForm
@@ -52,31 +60,37 @@ update msg model =
         NoOp ->
             ( model, Cmd.none )
 
-        SetPayload email ->
-            ( { model | payload = email }, Cmd.none )
+        InitializeSeed posix ->
+            ( { model | seed = initialSeed <| Time.posixToMillis posix }
+            , Task.perform SeedInitialized <| Task.succeed ()
+            )
+
+        SeedInitialized _ ->
+            ( { model | seedReady = True }, Cmd.none )
+
+        SetPayload payload ->
+            ( { model | payload = Just payload }, Cmd.none )
 
         SetPassword password ->
-            ( { model | password = password }, Cmd.none )
+            ( { model | password = Just password }, Cmd.none )
 
         SubmitForm ->
-            let
-                passphrase =
-                    model.password
+            case (model.password, model.payload) of
+                (Just passphrase, Just plaintext) -> 
+                    let
+                        ( ciphertext, seed ) =
+                            case Strings.encrypt model.seed passphrase plaintext of
+                                Err msg1 ->
+                                    ( "Error: " ++ msg1, model.seed)
 
-                plaintext =
-                    model.payload
-
-                ( ciphertext, seed ) =
-                    case Strings.encrypt (initialSeed 0) passphrase plaintext of
-                        Err msg1 ->
-                            ( "Error: " ++ msg1, (initialSeed 0))
-
-                        Ok textAndSeed ->
-                            textAndSeed
-            in
-                ( { model | secret = Nothing }
-                , postSecretAction (Secret "" ciphertext) Response
-                )
+                                Ok textAndSeed ->
+                                    textAndSeed
+                    in
+                        ( { model | secret = Nothing }
+                        , postSecretAction (Secret "" ciphertext) Response
+                        )
+                (_, _) -> 
+                    ( model, Cmd.none )
 
         Response (Ok response) ->
             ( { model | secret = Just response }, Cmd.none )
@@ -108,13 +122,13 @@ view model =
                             [ type_ "text"
                             , placeholder "A word or phrase that's difficult to guess"
                             , onInput SetPassword
-                            , value model.password
+                            , value (Maybe.withDefault "" model.password)
                             ]
                             []
                         ]
                     ]
                 , button
-                    [ onClick SubmitForm ]
+                    ([] |> appendIf model.seedReady (onClick SubmitForm))
                     [ text "Create link" ]
                 ]
         Just secret ->
@@ -126,3 +140,10 @@ view model =
                         [ text "🔑 Link to the secret:" ]
                     , a [ href link ] [ text link ]
                     ]
+
+appendIf : Bool -> a -> List a -> List a
+appendIf flag value list =
+    if flag == True then
+        list ++ [ value ]
+    else
+        list

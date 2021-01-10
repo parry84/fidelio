@@ -12,7 +12,7 @@ import Http
 
 type alias Model =
     { secret : Secret
-    , password : String
+    , password : Maybe String
     , payload : Maybe String
     , response : Maybe String
     }
@@ -25,7 +25,7 @@ init model =
 initialModel : Secret -> Model
 initialModel secret =
     { secret = secret
-    , password = ""
+    , password = Nothing
     , payload = Nothing
     , response = Nothing
     }
@@ -49,25 +49,26 @@ update msg model =
             ( model, Cmd.none )
 
         SetPassword password ->
-            ( { model | password = password }, Cmd.none )
+            ( { model | password = Just password }, Cmd.none )
 
         SubmitForm ->
-            let
-                passphrase =
-                    model.password
+            case model.password of
+                Just passphrase ->
+                    let
+                        ciphertext =
+                            model.secret.payload
 
-                ciphertext =
-                    model.secret.payload
+                        plaintext =
+                            case Strings.decrypt passphrase ciphertext of
+                                Err msg1 ->
+                                    "Error: " ++ msg1
 
-                plaintext =
-                    case Strings.decrypt passphrase ciphertext of
-                        Err msg1 ->
-                            "Error: " ++ msg1
-
-                        Ok textAndSeed ->
-                            textAndSeed
-            in
-                ( { model | payload = Just plaintext }, Cmd.none )
+                                Ok textAndSeed ->
+                                    textAndSeed
+                    in
+                        ( { model | payload = Just plaintext }, Cmd.none )
+                Nothing ->
+                    ( model, Cmd.none )
 
         Response (Ok response) ->
             ( model, Cmd.none )

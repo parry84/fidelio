@@ -90,7 +90,7 @@ view model =
                             [ type_ "password"
                             , placeholder "Enter the passphrase here"
                             , onInput SetPassword
-                            , value model.password
+                            , value (Maybe.withDefault "" model.password)
                             ]
                             []
                         ]

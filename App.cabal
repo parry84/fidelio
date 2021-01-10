@@ -5,10 +5,10 @@ name:                Fidelio
 version:             0.1.0.0
 -- synopsis:
 -- description:
-license:             AllRightsReserved
+license:             MIT
 license-file:        LICENSE
-author:              Marc Scholten
-maintainer:          marc@digitallyinduced.com
+author:              Emanuele Parrinello
+maintainer:          parry84@gmail.com
 -- copyright:
 -- category:
 build-type:          Simple

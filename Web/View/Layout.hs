@@ -48,7 +48,7 @@ scripts = do
         <script defer src="/elm/index.js"></script>
     |]
     when isProduction [hsx|
-        <script src="/prod.js"></script>
+        <script defer src="/prod.js"></script>
     |]
 
 

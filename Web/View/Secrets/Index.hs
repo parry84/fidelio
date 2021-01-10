@@ -33,7 +33,6 @@ renderSecret secret = [hsx|
     <tr>
         <td>{secret}</td>
         <td><a href={ShowSecretAction (get #id secret)}>Show</a></td>
-        <td><a href={EditSecretAction (get #id secret)} class="text-muted">Edit</a></td>
         <td><a href={DeleteSecretAction (get #id secret)} class="js-delete text-muted">Delete</a></td>
     </tr>
 |]

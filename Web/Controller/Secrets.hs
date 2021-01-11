@@ -20,13 +20,17 @@ instance Controller SecretsController where
 
     action CreateSecretAction = do
         let secret = newRecord @Secret
+        let hostname = appHostname getConfig
+        let baseUrl' = baseUrl getConfig
         secret
             |> buildSecret
             |> ifValid \case
                 Left secret -> render NewView { .. } 
                 Right secret -> do
                     secret <- secret |> createRecord
-                    render ShowView { .. }
+                    let id = get #id secret
+                    let link = baseUrl' ++ "/ShowSecret?secretId=" ++ show id
+                    renderJson link
 
     action DeleteSecretAction { secretId } = do
         secret <- fetch secretId

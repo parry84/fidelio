@@ -1,6 +1,6 @@
 module Widget.SecretCreator exposing (..)
 
-import Api.Generated exposing (Secret)
+import Api.Generated exposing (Secret, Link)
 import Api.Http exposing (postSecretAction)
 import Html exposing (..)
 import Html.Attributes exposing (..)
@@ -15,7 +15,7 @@ import Time exposing (Posix)
 type alias Model =
     { payload : Maybe String
     , password : Maybe String
-    , secret : Maybe Secret
+    , secret : Maybe Link
     , seed : Maybe Seed
     }
 
@@ -48,7 +48,7 @@ type Msg
     | SetPayload String
     | SetPassword String
     | SubmitForm
-    | Response (Result Http.Error Secret)
+    | Response (Result Http.Error Link)
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -126,7 +126,7 @@ view model =
                 ]
         Just secret ->
             let
-                link = "https://fidelio.ihpapp.com/ShowSecret?secretId=" ++ secret.id
+                link = secret.link
             in
                 div []
                     [ h2 []

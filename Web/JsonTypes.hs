@@ -33,3 +33,22 @@ secretToJSON secret =
         id = show $ get #id secret,
         payload = get #payload secret
     }
+
+data LinkJSON = LinkJSON
+  { link :: Text
+  } deriving ( Generic
+             , SOP.Generic
+             , SOP.HasDatatypeInfo
+             )
+    deriving ( Aeson.ToJSON
+             , Aeson.FromJSON
+             , HasElmType
+             , HasElmDecoder Aeson.Value
+             , HasElmEncoder Aeson.Value)
+    via ElmType "Api.Generated.Link" LinkJSON
+
+linkToJSON :: String -> LinkJSON
+linkToJSON link =
+    LinkJSON {
+        link = show link
+    }

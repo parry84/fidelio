@@ -14,8 +14,10 @@ import Application.Helper.View
 run :: Script
 run = do
     let
-        definitions = Simplification.simplifyDefinition <$>
-                        jsonDefinitions @Widget <> jsonDefinitions @SecretJSON
+        definitions = Simplification.simplifyDefinition 
+            <$> jsonDefinitions @Widget
+            <> jsonDefinitions @SecretJSON
+            <> jsonDefinitions @LinkJSON
 
         modules = Pretty.modules definitions
 

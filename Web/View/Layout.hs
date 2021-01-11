@@ -5,7 +5,7 @@ import IHP.Environment
 import qualified Text.Blaze.Html5            as H
 import qualified Text.Blaze.Html5.Attributes as A
 import Generated.Types
-import IHP.Controller.RequestContext
+import IHP.Controller.RequestContext as RC
 import Web.Types
 import Web.Routes
 
@@ -53,11 +53,13 @@ scripts = do
 
 
 metaTags :: Html
-metaTags = [hsx|
-    <meta charset="utf-8"/>
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no"/>
-    <meta property="og:title" content="Fidelio"/>
-    <meta property="og:type" content="website"/>
-    <meta property="og:url" content="https://fidelio.ihpapp.com/"/>
-    <meta property="og:description" content="A trustable secret sharing app"/>
-|]
+metaTags = do
+    let hostname = appHostname getConfig
+    [hsx|
+        <meta charset="utf-8"/>
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no"/>
+        <meta property="og:title" content="Fidelio"/>
+        <meta property="og:type" content="website"/>
+        <meta property="og:url" content={hostname}/>
+        <meta property="og:description" content="A trustable secret sharing app"/>
+    |]

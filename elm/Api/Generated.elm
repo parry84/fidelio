@@ -51,3 +51,18 @@ secretDecoder =
     Json.Decode.succeed Secret |>
     Json.Decode.Pipeline.required "id" Json.Decode.string |>
     Json.Decode.Pipeline.required "payload" Json.Decode.string
+
+
+type alias Link  =
+    { link : String }
+
+
+linkEncoder : Link -> Json.Encode.Value
+linkEncoder a =
+    Json.Encode.object [("link" , Json.Encode.string a.link)]
+
+
+linkDecoder : Json.Decode.Decoder Link
+linkDecoder =
+    Json.Decode.succeed Link |>
+    Json.Decode.Pipeline.required "link" Json.Decode.string

@@ -48,7 +48,7 @@ The application is composed by following components:
 
 The Elm types are automatically generated from Haskell types. In order to regenerate them:
 ```bash
-npm gen-types
+yarn gen-types
 ```
 
 ## Similar projects ##

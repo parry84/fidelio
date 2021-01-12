@@ -4,6 +4,7 @@ import Web.Controller.Prelude
 import Web.View.Secrets.Index
 import Web.View.Secrets.New
 import Web.View.Secrets.Show
+import Web.JsonTypes (linkToJSON)
 
 instance Controller SecretsController where
     action SecretsAction = do
@@ -20,7 +21,6 @@ instance Controller SecretsController where
 
     action CreateSecretAction = do
         let secret = newRecord @Secret
-        let hostname = appHostname getConfig
         let baseUrl' = baseUrl getConfig
         secret
             |> buildSecret
@@ -30,7 +30,7 @@ instance Controller SecretsController where
                     secret <- secret |> createRecord
                     let id = get #id secret
                     let link = baseUrl' ++ "/ShowSecret?secretId=" ++ show id
-                    renderJson link
+                    renderJson $ linkToJSON link
 
     action DeleteSecretAction { secretId } = do
         secret <- fetch secretId

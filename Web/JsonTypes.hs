@@ -47,8 +47,8 @@ data LinkJSON = LinkJSON
              , HasElmEncoder Aeson.Value)
     via ElmType "Api.Generated.Link" LinkJSON
 
-linkToJSON :: String -> LinkJSON
+linkToJSON :: Text -> LinkJSON
 linkToJSON link =
     LinkJSON {
-        link = show link
+        link = link
     }

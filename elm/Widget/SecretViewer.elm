@@ -8,6 +8,9 @@ import Json.Decode as D
 import Crypto.Strings as Strings
 import Random exposing (Seed, initialSeed)
 import Http
+import Material.Button as Button
+import Material.TextField as TextField
+import Material.Typography as Typography
 
 
 type alias Model =
@@ -81,28 +84,39 @@ view : Model -> Html Msg
 view model =
     case model.payload of
         Nothing ->
-            div []
-                [ h2 [] [ text "🔑 This message requires a passphrase:" ]
-                , p [] [
-                    label []
-                        [ text "Password:"
-                        , input
-                            [ type_ "password"
-                            , placeholder "Enter the passphrase here"
-                            , onInput SetPassword
-                            , value (Maybe.withDefault "" model.password)
-                            ]
-                            []
-                        ]
-                ]
-                , button
-                    [ onClick SubmitForm ]
-                    [ text "View secret" ]
-                ]
+            div [ class "container h-100" ] [
+                div [class "row h-50 justify-content-center align-items-center"] [
+                    div [ class "text-center" ] 
+                    [ h4 [ Typography.headline4 ] [ text "🔑 This message requires a passphrase:" ]
+                    , materialTextField (Maybe.withDefault "" model.password) "text" "Enter the passphrase here" [] "face" (True) SetPassword
+                    , buttonView model
+                    ]]]
 
         Just plaintext ->
-            div []
-                [ h2 [] [ text "🔑 The secret:" ]
-                , pre [] [ text plaintext]
-                ]
+            div [ class "container h-100" ] [
+                div [class "row h-50 justify-content-center align-items-center"] [
+                    div [ class "text-center" ] 
+                        [ h4 [ Typography.headline4 ] [ text "🔑 The secret:" ]
+                        , pre [ Typography.button ] [ text plaintext ]
+                        ]]]
 
+buttonView : Model -> Html Msg
+buttonView model = 
+    case (model.password) of
+        (Just _) ->
+            Button.raised (Button.config |> Button.setOnClick SubmitForm) "View secret" 
+        _ ->
+            Button.raised (Button.config |> (Button.setDisabled True)) "View secret" 
+
+materialTextField : String -> String -> String -> List (Attribute Msg) -> String -> Bool -> (String -> Msg) -> Html Msg
+materialTextField str setType placeholder arr icon isValid updateFunction =
+    TextField.filled
+        (TextField.config
+            |> TextField.setType (Just setType)
+            |> TextField.setAttributes ([ style "width" "100%", class "material-text-field" ] ++ arr)
+            |> TextField.setPlaceholder (Just placeholder)
+            |> TextField.setValue (Just str)
+            |> TextField.setRequired True
+            |> TextField.setOnInput updateFunction
+            |> TextField.setValid (not (String.isEmpty str))
+        )

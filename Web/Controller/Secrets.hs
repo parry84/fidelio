@@ -1,9 +1,9 @@
 module Web.Controller.Secrets where
 
 import Web.Controller.Prelude
-import Web.View.Secrets.Index
-import Web.View.Secrets.New
-import Web.View.Secrets.Show
+import Web.View.Secrets.Index ( IndexView(IndexView, secrets) )
+import Web.View.Secrets.New ( NewView(NewView, secret) )
+import Web.View.Secrets.Show ( ShowView(ShowView, secret) )
 import Web.JsonTypes (linkToJSON)
 
 instance Controller SecretsController where

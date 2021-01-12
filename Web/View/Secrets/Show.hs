@@ -1,14 +1,20 @@
 module Web.View.Secrets.Show where
 import Web.View.Prelude
-import Data.Aeson
+    ( get,
+      KeyValue((.=)),
+      ToJSON(toJSON),
+      Secret,
+      Secret'(id, payload),
+      hsx,
+      View(html, json),
+      secretViewerWidget )
+import Data.Aeson ( object )
 
 
 data ShowView = ShowView { secret :: Secret }
 
 instance View ShowView where
     html ShowView { .. } = [hsx|
-        <h1><a href="/">🎭 Fidelio</a></h1>
-        <cite>That is the password... for admittance. But may I ask, what is the password... for the house?</cite>
         {secretViewerWidget secret}
     |]
 

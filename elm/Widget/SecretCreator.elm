@@ -10,6 +10,9 @@ import Random exposing (Seed, initialSeed)
 import Http
 import Task
 import Time exposing (Posix)
+import Material.Button as Button
+import Material.TextField as TextField
+import Material.Typography as Typography
 
 
 type alias Model =
@@ -98,46 +101,43 @@ view : Model -> Html Msg
 view model =
     case model.secret of
         Nothing ->
-            div []
-                [ h2 []
-                    [ text "🔑 Create a new secret:" ]
-                , p [] [
-                        textarea 
-                        [ cols 40
-                        , rows 5
-                        , placeholder "Secret content goes here..."
-                        , onInput SetPayload
-                        ]
-                        []
-                    ]
-                , p [] [
-                    label []
-                        [ text "Password:"
-                        , input
-                            [ type_ "text"
-                            , placeholder "A word or phrase that's difficult to guess"
-                            , onInput SetPassword
-                            , value (Maybe.withDefault "" model.password)
-                            ]
-                            []
-                        ]
-                    ]
-                , buttonView model.seed
-                ]
+            div [ class "container h-100" ] [
+                div [class "row h-50 justify-content-center align-items-center"] [
+                    div [ class "text-center" ] 
+                    [ h4 [ Typography.headline4 ] [ text "🔑 Create a new secret:" ]
+                    , materialTextField (Maybe.withDefault "" model.payload) "text" "Secret content goes here..." [] "face" (True) SetPayload
+                    , materialTextField (Maybe.withDefault "" model.password) "text" "A word or phrase that's difficult to guess" [] "face" (True) SetPassword
+                    , buttonView model
+                    ]]]
         Just secret ->
             let
                 link = secret.link
             in
-                div []
-                    [ h2 []
-                        [ text "🔑 Link to the secret:" ]
-                    , a [ href link ] [ text link ]
-                    ]
+                div [ class "container h-100" ] [
+                    div [class "row h-50 justify-content-center align-items-center"] [
+                        div [ class "text-center" ] 
+                        [ h4 [ Typography.headline4 ] [ text "🔑 Link to the secret:" ]
+                        , a [ Typography.button, href link ] [ text link ]
+                        ]]]
 
-buttonView : Maybe Seed -> Html Msg
-buttonView seed = 
-    case seed of
-        Just _ ->
-            button [ onClick SubmitForm ] [ text "Create link" ]
-        Nothing ->
-            button [] [ text "Create link" ]
+buttonView : Model -> Html Msg
+buttonView model = 
+    case (model.password, model.payload, model.seed) of
+        (Just _, Just _, Just _) ->
+            Button.raised (Button.config |> Button.setOnClick SubmitForm) "Create link" 
+        _ ->
+            Button.raised (Button.config |> (Button.setDisabled True)) "Create link" 
+
+
+materialTextField : String -> String -> String -> List (Attribute Msg) -> String -> Bool -> (String -> Msg) -> Html Msg
+materialTextField str setType placeholder arr icon isValid updateFunction =
+    TextField.filled
+        (TextField.config
+            |> TextField.setType (Just setType)
+            |> TextField.setAttributes ([ style "width" "100%", class "material-text-field" ] ++ arr)
+            |> TextField.setPlaceholder (Just placeholder)
+            |> TextField.setValue (Just str)
+            |> TextField.setRequired True
+            |> TextField.setOnInput updateFunction
+            |> TextField.setValid (not (String.isEmpty str))
+        )

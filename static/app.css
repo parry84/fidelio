@@ -1,0 +1,14 @@
+body,html{
+    height:100%;
+}
+
+a {
+    text-decoration: none;
+    color:rgb(26, 0, 99);
+}
+
+a:hover {
+    color:rgb(68, 0, 255);
+    text-decoration:none;
+    cursor:pointer;
+}

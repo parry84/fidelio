@@ -6,7 +6,7 @@ import Json.Encode
 
 
 type Widget
-    = SecretViewerWidget Secret
+    = SecretViewerWidget SecretViewerFlags
     | SecretCreatorWidget
 
 
@@ -16,7 +16,7 @@ widgetEncoder a =
         SecretViewerWidget b ->
             Json.Encode.object
                 [ ( "tag", Json.Encode.string "SecretViewerWidget" )
-                , ( "contents", secretEncoder b )
+                , ( "contents", secretViewerFlagsEncoder b )
                 ]
 
         SecretCreatorWidget ->
@@ -31,7 +31,7 @@ widgetDecoder =
                 case a of
                     "SecretViewerWidget" ->
                         Json.Decode.succeed SecretViewerWidget
-                            |> Json.Decode.Pipeline.required "contents" secretDecoder
+                            |> Json.Decode.Pipeline.required "contents" secretViewerFlagsDecoder
 
                     "SecretCreatorWidget" ->
                         Json.Decode.succeed SecretCreatorWidget
@@ -41,8 +41,23 @@ widgetDecoder =
             )
 
 
+type alias SecretViewerFlags =
+    { secretId : String }
+
+
+secretViewerFlagsEncoder : SecretViewerFlags -> Json.Encode.Value
+secretViewerFlagsEncoder a =
+    Json.Encode.object [ ( "secretId", Json.Encode.string a.secretId ) ]
+
+
+secretViewerFlagsDecoder : Json.Decode.Decoder SecretViewerFlags
+secretViewerFlagsDecoder =
+    Json.Decode.succeed SecretViewerFlags
+        |> Json.Decode.Pipeline.required "secretId" Json.Decode.string
+
+
 type alias Secret =
-    { id : String, payload : String }
+    { id : String, payload : String, password : String }
 
 
 secretEncoder : Secret -> Json.Encode.Value
@@ -50,6 +65,7 @@ secretEncoder a =
     Json.Encode.object
         [ ( "id", Json.Encode.string a.id )
         , ( "payload", Json.Encode.string a.payload )
+        , ( "password", Json.Encode.string a.password )
         ]
 
 
@@ -58,6 +74,7 @@ secretDecoder =
     Json.Decode.succeed Secret
         |> Json.Decode.Pipeline.required "id" Json.Decode.string
         |> Json.Decode.Pipeline.required "payload" Json.Decode.string
+        |> Json.Decode.Pipeline.required "password" Json.Decode.string
 
 
 type alias Link =
@@ -73,3 +90,56 @@ linkDecoder : Json.Decode.Decoder Link
 linkDecoder =
     Json.Decode.succeed Link
         |> Json.Decode.Pipeline.required "link" Json.Decode.string
+
+
+type alias InputSecret =
+    { payload : String, password : String }
+
+
+inputSecretEncoder : InputSecret -> Json.Encode.Value
+inputSecretEncoder a =
+    Json.Encode.object
+        [ ( "payload", Json.Encode.string a.payload )
+        , ( "password", Json.Encode.string a.password )
+        ]
+
+
+inputSecretDecoder : Json.Decode.Decoder InputSecret
+inputSecretDecoder =
+    Json.Decode.succeed InputSecret
+        |> Json.Decode.Pipeline.required "payload" Json.Decode.string
+        |> Json.Decode.Pipeline.required "password" Json.Decode.string
+
+
+type alias InputPassword =
+    { id : String, password : String }
+
+
+inputPasswordEncoder : InputPassword -> Json.Encode.Value
+inputPasswordEncoder a =
+    Json.Encode.object
+        [ ( "id", Json.Encode.string a.id )
+        , ( "password", Json.Encode.string a.password )
+        ]
+
+
+inputPasswordDecoder : Json.Decode.Decoder InputPassword
+inputPasswordDecoder =
+    Json.Decode.succeed InputPassword
+        |> Json.Decode.Pipeline.required "id" Json.Decode.string
+        |> Json.Decode.Pipeline.required "password" Json.Decode.string
+
+
+type alias OutputSecret =
+    { payload : String }
+
+
+outputSecretEncoder : OutputSecret -> Json.Encode.Value
+outputSecretEncoder a =
+    Json.Encode.object [ ( "payload", Json.Encode.string a.payload ) ]
+
+
+outputSecretDecoder : Json.Decode.Decoder OutputSecret
+outputSecretDecoder =
+    Json.Decode.succeed OutputSecret
+        |> Json.Decode.Pipeline.required "payload" Json.Decode.string

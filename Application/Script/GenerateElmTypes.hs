@@ -1,27 +1,32 @@
 #!/usr/bin/env run-script
+
 module Application.Script.GenerateElmTypes where
 
-import Application.Script.Prelude
-import qualified Language.Elm.Simplification as Simplification
-import qualified Language.Elm.Pretty as Pretty
-import Language.Haskell.To.Elm
-import Data.Text.IO
-import Web.JsonTypes
-import qualified System.Directory as Directory
-import qualified Data.HashMap.Lazy as HashMap
 import Application.Helper.View
+import Application.Script.Prelude
+import qualified Data.HashMap.Lazy as HashMap
+import Data.Text.IO
+import qualified Language.Elm.Pretty as Pretty
+import qualified Language.Elm.Simplification as Simplification
+import Language.Haskell.To.Elm
+import qualified System.Directory as Directory
+import Web.JsonTypes
 
 run :: Script
 run = do
-    let
-        definitions = Simplification.simplifyDefinition 
-            <$> jsonDefinitions @Widget
-            <> jsonDefinitions @SecretJSON
-            <> jsonDefinitions @LinkJSON
+  let definitions =
+        Simplification.simplifyDefinition
+          <$> jsonDefinitions @Widget
+          <> jsonDefinitions @SecretViewerFlagsJSON
+          <> jsonDefinitions @SecretJSON
+          <> jsonDefinitions @LinkJSON
+          <> jsonDefinitions @InputSecretJSON
+          <> jsonDefinitions @InputPasswordJSON
+          <> jsonDefinitions @OutputSecretJSON
 
-        modules = Pretty.modules definitions
+      modules = Pretty.modules definitions
 
-    Directory.createDirectoryIfMissing False "elm/Api"
+  Directory.createDirectoryIfMissing False "elm/Api"
 
-    forEach (HashMap.toList modules) $ \(_moduleName, contents) ->
-        writeFile "elm/Api/Generated.elm" (show contents)
+  forEach (HashMap.toList modules) $ \(_moduleName, contents) ->
+    writeFile "elm/Api/Generated.elm" (show contents)

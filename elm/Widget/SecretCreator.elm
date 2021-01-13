@@ -1,6 +1,6 @@
 module Widget.SecretCreator exposing (..)
 
-import Api.Generated exposing (Link, Secret)
+import Api.Generated exposing (InputSecret, Link, Secret)
 import Api.Http exposing (postSecretAction)
 import Crypto.Strings as Strings
 import Html exposing (..)
@@ -86,7 +86,7 @@ update msg model =
                                     textAndSeed
                     in
                     ( { model | secret = Nothing }
-                    , postSecretAction (Secret "" ciphertext) Response
+                    , postSecretAction (InputSecret ciphertext passphrase) Response
                     )
 
                 ( _, _, _ ) ->

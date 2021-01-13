@@ -14,5 +14,6 @@ data SecretsController
     | NewSecretAction
     | ShowSecretAction { secretId :: !(Id Secret) }
     | CreateSecretAction
+    | GetAction
     | DeleteSecretAction { secretId :: !(Id Secret) }
     deriving (Eq, Show, Data)

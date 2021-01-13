@@ -3,8 +3,14 @@ Accept: application/json
 
 ###
 
-GET http://localhost:8001/ShowSecret?secretId=d10f3af0-3293-4d44-b012-86138e2e8519
+POST http://localhost:8001/Get
 Accept: application/json
+Content-Type: application/json
+
+{
+    "id": "3defab27-f441-4fae-b4aa-3afd2529f3e5",
+    "password": ""
+}
 
 ###
 

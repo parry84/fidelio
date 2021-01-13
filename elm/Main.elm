@@ -117,8 +117,8 @@ initialModel flags =
 widgetFlagToModel : Widget -> Model
 widgetFlagToModel widget =
     case widget of
-        SecretViewerWidget secret ->
-            SecretModel (Widget.SecretViewer.initialModel secret)
+        SecretViewerWidget secretViewerFlags ->
+            SecretModel (Widget.SecretViewer.initialModel secretViewerFlags)
 
         SecretCreatorWidget ->
             SecretCreatorModel Widget.SecretCreator.initialModel

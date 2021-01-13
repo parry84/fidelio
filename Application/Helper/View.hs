@@ -16,9 +16,16 @@ import Web.JsonTypes
 import qualified Generics.SOP as SOP
 import GHC.Generics
 import Language.Haskell.To.Elm
+    ( HasElmType(elmDefinition),
+      HasElmDecoder(elmDecoderDefinition),
+      HasElmEncoder(elmEncoderDefinition),
+      defaultOptions,
+      deriveElmJSONDecoder,
+      deriveElmJSONEncoder,
+      deriveElmTypeDefinition )
 
 data Widget
-  = SecretViewerWidget SecretJSON
+  = SecretViewerWidget SecretViewerFlagsJSON
   | SecretCreatorWidget
   deriving ( Generic
            , Aeson.ToJSON
@@ -49,11 +56,11 @@ instance HasElmEncoder Aeson.Value Widget where
 -- Widgets
 
 secretViewerWidget :: Secret -> Html
-secretViewerWidget secret = [hsx|
+secretViewerWidget secretId = [hsx|
     <div data-flags={encode secretData} class="elm"></div>
 |]
     where
-      secretData :: Widget = SecretViewerWidget $ secretToJSON secret
+      secretData :: Widget = SecretViewerWidget (secretViewerFlagsJSON (SecretViewerFlags (show (get #id secretId))))
 
 secretCreatorWidget :: Html
 secretCreatorWidget = [hsx|

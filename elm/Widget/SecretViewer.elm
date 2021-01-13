@@ -1,6 +1,7 @@
 module Widget.SecretViewer exposing (..)
 
-import Api.Generated exposing (Secret)
+import Api.Generated exposing (InputPassword, OutputSecret, Secret, SecretViewerFlags)
+import Api.Http exposing (getSecretAction)
 import Crypto.Strings as Strings
 import Html exposing (..)
 import Html.Attributes exposing (..)
@@ -14,9 +15,10 @@ import Random exposing (Seed, initialSeed)
 
 
 type alias Model =
-    { secret : Secret
+    { secretId : String
+    , chipertext : Maybe String
     , password : Maybe String
-    , payload : Maybe String
+    , plaintext : Maybe String
     , response : Maybe String
     }
 
@@ -26,11 +28,12 @@ init model =
     ( model, Cmd.none )
 
 
-initialModel : Secret -> Model
-initialModel secret =
-    { secret = secret
+initialModel : SecretViewerFlags -> Model
+initialModel secretViewerFlags =
+    { secretId = secretViewerFlags.secretId
+    , chipertext = Nothing
     , password = Nothing
-    , payload = Nothing
+    , plaintext = Nothing
     , response = Nothing
     }
 
@@ -44,7 +47,7 @@ type Msg
     = NoOp
     | SetPassword String
     | SubmitForm
-    | Response (Result Http.Error (List Secret))
+    | Response (Result Http.Error OutputSecret)
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -59,25 +62,32 @@ update msg model =
         SubmitForm ->
             case model.password of
                 Just passphrase ->
+                    ( model
+                    , getSecretAction (InputPassword model.secretId passphrase) Response
+                    )
+
+                _ ->
+                    ( model, Cmd.none )
+
+        Response (Ok response) ->
+            case ( model.password, model.chipertext ) of
+                ( Just passphrase, _ ) ->
                     let
-                        ciphertext =
-                            model.secret.payload
+                        chipertext =
+                            response.payload
 
                         plaintext =
-                            case Strings.decrypt passphrase ciphertext of
+                            case Strings.decrypt passphrase chipertext of
                                 Err msg1 ->
                                     "Error: " ++ msg1
 
                                 Ok textAndSeed ->
                                     textAndSeed
                     in
-                    ( { model | payload = Just plaintext }, Cmd.none )
+                    ( { model | plaintext = Just plaintext }, Cmd.none )
 
-                Nothing ->
+                _ ->
                     ( model, Cmd.none )
-
-        Response (Ok response) ->
-            ( model, Cmd.none )
 
         Response (Err error) ->
             ( model, Cmd.none )
@@ -85,7 +95,7 @@ update msg model =
 
 view : Model -> Html Msg
 view model =
-    case model.payload of
+    case model.plaintext of
         Nothing ->
             div [ class "container h-100" ]
                 [ div [ class "row h-50 justify-content-center align-items-center" ]

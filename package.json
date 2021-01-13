@@ -9,7 +9,9 @@
     "run-dev-ihp": "./start",
     "gen-types": "nix-shell --run './Application/Script/GenerateElmTypes.hs'",
     "start": "concurrently --raw \"npm:run-dev-*\"",
-    "build": "parcel build elm/index.js --out-dir static/elm"
+    "build": "parcel build elm/index.js --out-dir static/elm",
+    "format:elm": "elm-format --yes ./elm",
+    "format:js": "eslint --fix js/**/*.js webpack.config.js"
   },
   "repository": {
     "type": "git",

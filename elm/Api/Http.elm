@@ -1,6 +1,6 @@
 module Api.Http exposing (..)
 
-import Api.Generated exposing (Secret, Link, secretEncoder, secretDecoder, linkDecoder)
+import Api.Generated exposing (Link, Secret, linkDecoder, secretDecoder, secretEncoder)
 import Http
 import Json.Decode as D
 
@@ -17,6 +17,7 @@ getSecretsAction searchTerm msg =
         , body = Http.emptyBody
         , expect = Http.expectJson msg (D.list secretDecoder)
         }
+
 
 postSecretAction :
     Secret

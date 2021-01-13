@@ -10,8 +10,8 @@ import Api.Generated
 import Browser
 import Html exposing (..)
 import Json.Decode as D
-import Widget.SecretViewer
 import Widget.SecretCreator
+import Widget.SecretViewer
 
 
 type Model
@@ -33,7 +33,7 @@ update msg model =
             Widget.SecretViewer.update subMsg secret
                 |> updateWith SecretModel GotSecretMsg model
 
-        ( GotSecretCreatorMsg subMsg, SecretCreatorModel subModel) ->
+        ( GotSecretCreatorMsg subMsg, SecretCreatorModel subModel ) ->
             Widget.SecretCreator.update subMsg subModel
                 |> updateWith SecretCreatorModel GotSecretCreatorMsg model
 
@@ -58,11 +58,11 @@ subscriptions : Model -> Sub Msg
 subscriptions parentModel =
     case parentModel of
         SecretModel secret ->
-            Sub.map GotSecretMsg 
+            Sub.map GotSecretMsg
                 (Widget.SecretViewer.subscriptions secret)
 
         SecretCreatorModel subModel ->
-            Sub.map GotSecretCreatorMsg 
+            Sub.map GotSecretCreatorMsg
                 (Widget.SecretCreator.subscriptions subModel)
 
         ErrorModel err ->

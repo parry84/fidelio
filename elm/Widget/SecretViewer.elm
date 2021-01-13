@@ -1,16 +1,16 @@
 module Widget.SecretViewer exposing (..)
 
 import Api.Generated exposing (Secret)
+import Crypto.Strings as Strings
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
-import Json.Decode as D
-import Crypto.Strings as Strings
-import Random exposing (Seed, initialSeed)
 import Http
+import Json.Decode as D
 import Material.Button as Button
 import Material.TextField as TextField
 import Material.Typography as Typography
+import Random exposing (Seed, initialSeed)
 
 
 type alias Model =
@@ -25,6 +25,7 @@ init : Model -> ( Model, Cmd msg )
 init model =
     ( model, Cmd.none )
 
+
 initialModel : Secret -> Model
 initialModel secret =
     { secret = secret
@@ -32,6 +33,7 @@ initialModel secret =
     , payload = Nothing
     , response = Nothing
     }
+
 
 subscriptions : Model -> Sub Msg
 subscriptions _ =
@@ -69,7 +71,8 @@ update msg model =
                                 Ok textAndSeed ->
                                     textAndSeed
                     in
-                        ( { model | payload = Just plaintext }, Cmd.none )
+                    ( { model | payload = Just plaintext }, Cmd.none )
+
                 Nothing ->
                     ( model, Cmd.none )
 
@@ -84,29 +87,36 @@ view : Model -> Html Msg
 view model =
     case model.payload of
         Nothing ->
-            div [ class "container h-100" ] [
-                div [class "row h-50 justify-content-center align-items-center"] [
-                    div [ class "text-center" ] 
-                    [ h4 [ Typography.headline4 ] [ text "🔑 This message requires a passphrase:" ]
-                    , materialTextField (Maybe.withDefault "" model.password) "text" "Enter the passphrase here" [] "face" (True) SetPassword
-                    , buttonView model
-                    ]]]
+            div [ class "container h-100" ]
+                [ div [ class "row h-50 justify-content-center align-items-center" ]
+                    [ div [ class "text-center" ]
+                        [ h4 [ Typography.headline4 ] [ text "🔑 This message requires a passphrase:" ]
+                        , materialTextField (Maybe.withDefault "" model.password) "text" "Enter the passphrase here" [] "face" True SetPassword
+                        , buttonView model
+                        ]
+                    ]
+                ]
 
         Just plaintext ->
-            div [ class "container h-100" ] [
-                div [class "row h-50 justify-content-center align-items-center"] [
-                    div [ class "text-center" ] 
+            div [ class "container h-100" ]
+                [ div [ class "row h-50 justify-content-center align-items-center" ]
+                    [ div [ class "text-center" ]
                         [ h4 [ Typography.headline4 ] [ text "🔑 The secret:" ]
                         , pre [ Typography.button ] [ text plaintext ]
-                        ]]]
+                        ]
+                    ]
+                ]
+
 
 buttonView : Model -> Html Msg
-buttonView model = 
-    case (model.password) of
-        (Just _) ->
-            Button.raised (Button.config |> Button.setOnClick SubmitForm) "View secret" 
+buttonView model =
+    case model.password of
+        Just _ ->
+            Button.raised (Button.config |> Button.setOnClick SubmitForm) "View secret"
+
         _ ->
-            Button.raised (Button.config |> (Button.setDisabled True)) "View secret" 
+            Button.raised (Button.config |> Button.setDisabled True) "View secret"
+
 
 materialTextField : String -> String -> String -> List (Attribute Msg) -> String -> Bool -> (String -> Msg) -> Html Msg
 materialTextField str setType placeholder arr icon isValid updateFunction =

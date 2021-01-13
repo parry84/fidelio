@@ -1,7 +1,8 @@
 module ErrorView exposing (..)
 
-import Http
 import Html exposing (Html, pre, text)
+import Http
+
 
 httpErrorView : Http.Error -> Html msg
 httpErrorView error =

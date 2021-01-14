@@ -3,7 +3,7 @@ module Web.Controller.Secrets where
 import Web.Controller.Prelude
 import Web.View.Secrets.Index ( IndexView(IndexView, secrets) )
 import Web.View.Secrets.New ( NewView(NewView, secret) )
-import Web.View.Secrets.Show ( ShowView(ShowView, secret) )
+import Web.View.Secrets.Show
 import Web.JsonTypes
 
 
@@ -17,18 +17,25 @@ instance Controller SecretsController where
         render NewView { .. }
 
     action ShowSecretAction { secretId } = do
-        secret <- fetch secretId
-        render ShowView { .. }
+        maybeSecret <- fetchOneOrNothing secretId
+        maybeSecret |> \case
+            Just secret -> render $ ShowViewOk $ show $ get #id secret
+            Nothing -> render $ ShowViewError "NOT_FOUND"
+
 
     action GetAction = do
         let id = param @(Id Secret) "id"
         let givenPassword = param @(Text) "password"
-        secret <- fetch id
-        let truePassword = get #password secret
-        if truePassword == givenPassword then
-            renderJson $ outputSecretJSON $ buildOutputSecret secret
-        else
-            renderPlain "Unauthorized"
+        maybeSecret <- fetchOneOrNothing id
+        maybeSecret |> \case
+            Just secret -> do
+                let truePassword = get #password secret
+                if truePassword == givenPassword then do
+                    deleteRecord secret
+                    renderJson $ outputSecretJSON $ buildOutputSecret secret
+                else
+                    renderPlain "unauthorized"
+            Nothing -> renderPlain "not_found"
 
     action CreateSecretAction = do
         let secret = newRecord @Secret

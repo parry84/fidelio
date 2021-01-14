@@ -73,9 +73,9 @@ data SecretViewerFlagsJSON = SecretViewerFlagsJSON
     via ElmType "Api.Generated.SecretViewerFlags" SecretViewerFlagsJSON
 
 secretViewerFlagsJSON :: SecretViewerFlags -> SecretViewerFlagsJSON
-secretViewerFlagsJSON secretId =
+secretViewerFlagsJSON secretViewerFlags =
     SecretViewerFlagsJSON {
-        secretId = get #secretId secretId
+        secretId = get #secretId secretViewerFlags
     }
 
 data InputSecret = InputSecret {payload :: Text, password :: Text} deriving (Eq, Show)

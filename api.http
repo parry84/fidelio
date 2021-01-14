@@ -8,8 +8,8 @@ Accept: application/json
 Content-Type: application/json
 
 {
-    "id": "3defab27-f441-4fae-b4aa-3afd2529f3e5",
-    "password": ""
+    "id": "69a78e85-5dfa-40fe-9bb4-b4012f37f774",
+    "password": "fweItbGHfE/RcLju1pQ0e3JrkG+4zBMmVow6r1DpRlQ="
 }
 
 ###
@@ -19,5 +19,6 @@ Accept: application/json
 Content-Type: application/json
 
 {
-    "payload": "fidelio"
+    "payload": "fidelio",
+    "passowrd": "kubrick"
 }

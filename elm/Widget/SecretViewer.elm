@@ -104,6 +104,7 @@ view model =
                         [ h4 [ Typography.headline4 ] [ text "🔑 This message requires a passphrase:" ]
                         , materialTextField (Maybe.withDefault "" model.password) "text" "Enter the passphrase here" [] "face" True SetPassword
                         , buttonView model
+                        , p [ Typography.body2 ] [ text "pay attention: we will show it only once." ]
                         ]
                     ]
                 ]
@@ -114,6 +115,7 @@ view model =
                     [ div [ class "text-center" ]
                         [ h4 [ Typography.headline4 ] [ text "🔑 The secret:" ]
                         , pre [ Typography.button ] [ text plaintext ]
+                        , p [ Typography.body2 ] [ text "pay attention: we will show it only once." ]
                         ]
                     ]
                 ]

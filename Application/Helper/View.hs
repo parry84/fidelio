@@ -55,12 +55,12 @@ instance HasElmEncoder Aeson.Value Widget where
 
 -- Widgets
 
-secretViewerWidget :: Secret -> Html
+secretViewerWidget :: Text -> Html
 secretViewerWidget secretId = [hsx|
     <div data-flags={encode secretData} class="elm"></div>
 |]
     where
-      secretData :: Widget = SecretViewerWidget (secretViewerFlagsJSON (SecretViewerFlags (show (get #id secretId))))
+      secretData :: Widget = SecretViewerWidget $ secretViewerFlagsJSON $ SecretViewerFlags secretId
 
 secretCreatorWidget :: Html
 secretCreatorWidget = [hsx|

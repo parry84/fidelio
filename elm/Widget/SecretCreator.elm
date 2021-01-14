@@ -2,6 +2,7 @@ module Widget.SecretCreator exposing (..)
 
 import Api.Generated exposing (InputSecret, Link, Secret)
 import Api.Http exposing (postSecretAction)
+import Crypto.Hash
 import Crypto.Strings as Strings
 import Html exposing (..)
 import Html.Attributes exposing (..)
@@ -77,6 +78,9 @@ update msg model =
             case ( model.password, model.payload, model.seed ) of
                 ( Just passphrase, Just plaintext, Just seed ) ->
                     let
+                        hashedPassword =
+                            Crypto.Hash.sha512 passphrase
+
                         ( ciphertext, seed1 ) =
                             case Strings.encrypt seed passphrase plaintext of
                                 Err msg1 ->
@@ -86,7 +90,7 @@ update msg model =
                                     textAndSeed
                     in
                     ( { model | secret = Nothing }
-                    , postSecretAction (InputSecret ciphertext passphrase) Response
+                    , postSecretAction (InputSecret ciphertext hashedPassword) Response
                     )
 
                 ( _, _, _ ) ->

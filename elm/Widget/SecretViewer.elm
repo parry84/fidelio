@@ -2,6 +2,7 @@ module Widget.SecretViewer exposing (..)
 
 import Api.Generated exposing (InputPassword, OutputSecret, Secret, SecretViewerFlags)
 import Api.Http exposing (getSecretAction)
+import Crypto.Hash
 import Crypto.Strings as Strings
 import Html exposing (..)
 import Html.Attributes exposing (..)
@@ -63,7 +64,7 @@ update msg model =
             case model.password of
                 Just passphrase ->
                     ( model
-                    , getSecretAction (InputPassword model.secretId passphrase) Response
+                    , getSecretAction (InputPassword model.secretId (Crypto.Hash.sha512 passphrase)) Response
                     )
 
                 _ ->

@@ -10,6 +10,7 @@ import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import Http
 import Material.Button as Button
+import Material.HelperText as HelperText
 import Material.TextField as TextField
 import Material.TextField.Icon as TextFieldIcon
 import Material.Typography as Typography
@@ -128,13 +129,10 @@ view model =
 creatorForm : Model -> List (Html Msg)
 creatorForm model =
     [ h4 [ Typography.headline4 ] [ text "🔑 Create a new secret:" ]
-    , materialTextField (Maybe.withDefault "" model.payload) "text" "Secret content goes here..." [] "face" True SetPayload
+    , secretField model
     , passwordField model
-    , div [] [ text "" ]
+    , buttonView model
     ]
-        ++ passwordStrength model.password
-        ++ [ buttonView model
-           ]
 
 
 linkView : Link -> List (Html Msg)
@@ -146,41 +144,6 @@ linkView secretLink =
     [ h4 [ Typography.headline4 ] [ text "🔑 Link to the secret:" ]
     , a [ Typography.button, href link ] [ text link ]
     ]
-
-
-passwordStrength : Maybe String -> List (Html Msg)
-passwordStrength maybeBassword =
-    case maybeBassword of
-        Just password ->
-            let
-                stats =
-                    Rumkin.getStats password
-
-                strength =
-                    stats.strength
-            in
-            [ div [ Typography.caption ]
-                [ text "Strength: "
-                , case strength of
-                    VeryWeak ->
-                        text "very weak"
-
-                    Weak ->
-                        text "weak"
-
-                    Reasonable ->
-                        text "reasonable"
-
-                    Strong ->
-                        text "strong"
-
-                    VeryStrong ->
-                        text "very strong"
-                ]
-            ]
-
-        Nothing ->
-            []
 
 
 buttonView : Model -> Html Msg
@@ -213,33 +176,98 @@ passwordField model =
         value =
             Maybe.withDefault "" model.password
     in
-    TextField.filled
-        (TextField.config
-            |> TextField.setType (Just textType)
-            |> TextField.setAttributes ([ style "width" "100%", class "material-text-field" ] ++ [])
-            |> TextField.setPlaceholder (Just "A word or phrase that's difficult to guess")
-            |> TextField.setValue (Just value)
-            |> TextField.setRequired True
-            |> TextField.setOnInput SetPassword
-            |> TextField.setValid (not (String.isEmpty value))
-            |> TextField.setTrailingIcon
-                (Just
-                    (TextFieldIcon.icon icon
-                        |> TextFieldIcon.setOnInteraction SetPasswordVisibility
+    div textFieldContainer
+        ([ TextField.filled
+            (TextField.config
+                |> TextField.setType (Just textType)
+                |> TextField.setAttributes [ style "width" "100%", class "material-text-field" ]
+                |> TextField.setPlaceholder (Just "A word or phrase that's difficult to guess")
+                |> TextField.setValue (Just value)
+                |> TextField.setRequired True
+                |> TextField.setOnInput SetPassword
+                |> TextField.setValid (not (String.isEmpty value))
+                |> TextField.setTrailingIcon
+                    (Just
+                        (TextFieldIcon.icon icon
+                            |> TextFieldIcon.setOnInteraction SetPasswordVisibility
+                        )
                     )
-                )
+            )
+         ]
+            ++ passwordStrength model.password
         )
 
 
-materialTextField : String -> String -> String -> List (Attribute Msg) -> String -> Bool -> (String -> Msg) -> Html Msg
-materialTextField str setType placeholder arr icon isValid updateFunction =
-    TextField.filled
-        (TextField.config
-            |> TextField.setType (Just setType)
-            |> TextField.setAttributes ([ style "width" "100%", class "material-text-field" ] ++ arr)
-            |> TextField.setPlaceholder (Just placeholder)
-            |> TextField.setValue (Just str)
-            |> TextField.setRequired True
-            |> TextField.setOnInput updateFunction
-            |> TextField.setValid (not (String.isEmpty str))
-        )
+secretField : Model -> Html Msg
+secretField model =
+    let
+        value =
+            Maybe.withDefault "" model.payload
+    in
+    div textFieldContainer
+        [ TextField.filled
+            (TextField.config
+                |> TextField.setType (Just "text")
+                |> TextField.setAttributes [ style "width" "100%", class "material-text-field" ]
+                |> TextField.setPlaceholder (Just "Secret content goes here...")
+                |> TextField.setValue (Just value)
+                |> TextField.setMaxLength (Just 1000)
+                |> TextField.setRequired True
+                |> TextField.setOnInput SetPayload
+                |> TextField.setValid (not (String.isEmpty value))
+            )
+        , helperText
+        ]
+
+
+helperText : Html msg
+helperText =
+    HelperText.helperLine []
+        [ HelperText.helperText
+            (HelperText.config |> HelperText.setPersistent True)
+            ""
+        , HelperText.characterCounter []
+        ]
+
+
+passwordStrength : Maybe String -> List (Html Msg)
+passwordStrength maybeBassword =
+    case maybeBassword of
+        Just password ->
+            let
+                stats =
+                    Rumkin.getStats password
+
+                strength =
+                    case stats.strength of
+                        VeryWeak ->
+                            "very weak"
+
+                        Weak ->
+                            "weak"
+
+                        Reasonable ->
+                            "reasonable"
+
+                        Strong ->
+                            "strong"
+
+                        VeryStrong ->
+                            "very strong"
+            in
+            [ HelperText.helperLine []
+                [ HelperText.helperText
+                    (HelperText.config |> HelperText.setPersistent True)
+                    ("Strength: " ++ strength)
+                ]
+            ]
+
+        Nothing ->
+            []
+
+
+textFieldContainer : List (Html.Attribute msg)
+textFieldContainer =
+    [ class "text-field-container"
+    , style "min-width" "200px"
+    ]

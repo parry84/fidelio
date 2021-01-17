@@ -164,7 +164,7 @@ passwordField model =
     TextField.filled
         (TextField.config
             |> TextField.setType (Just textType)
-            |> TextField.setAttributes ([ style "width" "100%", class "material-text-field" ] ++ [])
+            |> TextField.setAttributes [ style "width" "100%", class "material-text-field" ]
             |> TextField.setPlaceholder (Just "Enter the password here:")
             |> TextField.setValue (Just value)
             |> TextField.setRequired True

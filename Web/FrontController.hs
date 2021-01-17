@@ -10,7 +10,8 @@ import Web.Controller.Static
 
 instance FrontController WebApplication where
     controllers = 
-        [ startPage WelcomeAction
+        [ startPage CreatorAction
+        , parseRoute @StaticController
         -- Generator Marker
         , parseRoute @SecretsController
         ]

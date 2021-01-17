@@ -22,25 +22,32 @@ defaultLayout inner =
     <title>Fidelio</title>
 </head>
 <body class="mdc-typography">
-    <section>
+  <div>
+    <header>
       <div class="jumbotron text-center">
-          <h1 class="mdc-typography--headline1"><a href="/">🎭 Fidelio</a></h1>
-          <cite>That is the password... for admittance. But may I ask, what is the password... for the house?</cite>
+        <h1 class="mdc-typography--headline1"><a href="/">🎭 Fidelio</a></h1>
+        <cite>That is the password... for admittance. But may I ask, what is the password... for the house?</cite>
       </div>
-    </section>
-    <section>
+    </header>
+    <main>
       {inner}
-    </section>
-    <section class="jumbotron">
-      <h4 class="mdc-typography--headline4">What is it?</h4>
-      <p class="mdc-typography--body1">Don't send a password or other form of sensitive information to someone over IM or email. These methods are not secure as anyone with little knowledge can intercept this information during transmission. Using Fidelio you can encrypt your secrets and generate self-destructing links which can be safely transferred to your recipient.</p>
-      <h4 class="mdc-typography--headline4">Security features</h4>
-      <p class="mdc-typography--body1">Your secret are encrypted client-side on your browser, before being send to the server. Which means it cannot be sniffed by anyone. Decryption is client-side too.
-      Moreover, Fidelio is an opensource project and its code can reviewed by everybody at <a href="https://parry84.github.io/fidelio">https://parry84.github.io/fidelio</a>. Pretty secure.</p>
-    </section>
-    <section>
-    <p class="mdc-typography--body2 text-center">Coded by <a href="https://parry84.github.io/">parry84</a> with ❤️</p>
-    </section>
+    </main>
+    <footer class="fixed-bottom">
+      <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+          <ul class="navbar-nav mr-auto">
+            <li class="nav-item">
+              <a class="nav-link" href="/">Home</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="/About">About</a>
+            </li>
+          </ul>
+          <span class="navbar-text my-lg-0 mdc-typography--body2">Coded by <a href="https://parry84.github.io/">parry84</a> with ❤️</span>
+        </div>
+      </nav>
+    </footer>
+  </div>
 </body>
 |]
 

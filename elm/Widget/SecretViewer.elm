@@ -11,6 +11,7 @@ import Http
 import Json.Decode as D
 import Material.Button as Button
 import Material.TextField as TextField
+import Material.TextField.Icon as TextFieldIcon
 import Material.Typography as Typography
 import Random exposing (Seed, initialSeed)
 import Widget.Helper exposing (layout)
@@ -22,6 +23,7 @@ type alias Model =
     , password : Maybe String
     , plaintext : Maybe String
     , response : Maybe String
+    , passwordVisible : Bool
     }
 
 
@@ -37,6 +39,7 @@ initialModel secretViewerFlags =
     , password = Nothing
     , plaintext = Nothing
     , response = Nothing
+    , passwordVisible = True
     }
 
 
@@ -50,6 +53,7 @@ type Msg
     | SetPassword String
     | SubmitForm
     | Response (Result Http.Error OutputSecret)
+    | SetPasswordVisibility
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -94,6 +98,9 @@ update msg model =
         Response (Err error) ->
             ( model, Cmd.none )
 
+        SetPasswordVisibility ->
+            ( { model | passwordVisible = not model.passwordVisible }, Cmd.none )
+
 
 view : Model -> Html Msg
 view model =
@@ -110,7 +117,7 @@ view model =
 decryptView : Model -> List (Html Msg)
 decryptView model =
     [ h4 [ Typography.headline4 ] [ text "🔑 This message requires a passphrase:" ]
-    , materialTextField (Maybe.withDefault "" model.password) "text" "Enter the passphrase here" [] "face" True SetPassword
+    , passwordField model
     , buttonView model
     , p [ Typography.body2 ] [ text "pay attention: we will show it only once." ]
     ]
@@ -134,15 +141,39 @@ buttonView model =
             Button.raised (Button.config |> Button.setDisabled True) "View secret"
 
 
-materialTextField : String -> String -> String -> List (Attribute Msg) -> String -> Bool -> (String -> Msg) -> Html Msg
-materialTextField str setType placeholder arr icon isValid updateFunction =
+passwordField : Model -> Html Msg
+passwordField model =
+    let
+        textType =
+            if model.passwordVisible then
+                "text"
+
+            else
+                "password"
+
+        icon =
+            if model.passwordVisible then
+                "visibility"
+
+            else
+                "visibility_off"
+
+        value =
+            Maybe.withDefault "" model.password
+    in
     TextField.filled
         (TextField.config
-            |> TextField.setType (Just setType)
-            |> TextField.setAttributes ([ style "width" "100%", class "material-text-field" ] ++ arr)
-            |> TextField.setPlaceholder (Just placeholder)
-            |> TextField.setValue (Just str)
+            |> TextField.setType (Just textType)
+            |> TextField.setAttributes ([ style "width" "100%", class "material-text-field" ] ++ [])
+            |> TextField.setPlaceholder (Just "Enter the password here:")
+            |> TextField.setValue (Just value)
             |> TextField.setRequired True
-            |> TextField.setOnInput updateFunction
-            |> TextField.setValid (not (String.isEmpty str))
+            |> TextField.setOnInput SetPassword
+            |> TextField.setValid (not (String.isEmpty value))
+            |> TextField.setTrailingIcon
+                (Just
+                    (TextFieldIcon.icon icon
+                        |> TextFieldIcon.setOnInteraction SetPasswordVisibility
+                    )
+                )
         )

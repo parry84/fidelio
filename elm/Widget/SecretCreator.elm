@@ -25,6 +25,7 @@ type alias Model =
     , password : Maybe String
     , secret : Maybe Link
     , seed : Maybe Seed
+    , passwordVisible : Bool
     }
 
 
@@ -39,6 +40,7 @@ initialModel =
     , password = Nothing
     , secret = Nothing
     , seed = Nothing
+    , passwordVisible = True
     }
 
 
@@ -59,6 +61,7 @@ type Msg
     | SetPassword String
     | SubmitForm
     | Response (Result Http.Error Link)
+    | SetPasswordVisibility
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -106,6 +109,9 @@ update msg model =
         Response (Err error) ->
             ( model, Cmd.none )
 
+        SetPasswordVisibility ->
+            ( { model | passwordVisible = not model.passwordVisible }, Cmd.none )
+
 
 view : Model -> Html Msg
 view model =
@@ -123,8 +129,8 @@ creatorForm : Model -> List (Html Msg)
 creatorForm model =
     [ h4 [ Typography.headline4 ] [ text "🔑 Create a new secret:" ]
     , materialTextField (Maybe.withDefault "" model.payload) "text" "Secret content goes here..." [] "face" True SetPayload
-    , materialTextField (Maybe.withDefault "" model.password) "password" "A word or phrase that's difficult to guess" [] "face" True SetPassword
-    , div [] [text ""]
+    , passwordField model
+    , div [] [ text "" ]
     ]
         ++ passwordStrength model.password
         ++ [ buttonView model
@@ -187,6 +193,44 @@ buttonView model =
             Button.raised (Button.config |> Button.setDisabled True) "Create link"
 
 
+passwordField : Model -> Html Msg
+passwordField model =
+    let
+        textType =
+            if model.passwordVisible then
+                "text"
+
+            else
+                "password"
+
+        icon =
+            if model.passwordVisible then
+                "visibility"
+
+            else
+                "visibility_off"
+
+        value =
+            Maybe.withDefault "" model.password
+    in
+    TextField.filled
+        (TextField.config
+            |> TextField.setType (Just textType)
+            |> TextField.setAttributes ([ style "width" "100%", class "material-text-field" ] ++ [])
+            |> TextField.setPlaceholder (Just "A word or phrase that's difficult to guess")
+            |> TextField.setValue (Just value)
+            |> TextField.setRequired True
+            |> TextField.setOnInput SetPassword
+            |> TextField.setValid (not (String.isEmpty value))
+            |> TextField.setTrailingIcon
+                (Just
+                    (TextFieldIcon.icon icon
+                        |> TextFieldIcon.setOnInteraction SetPasswordVisibility
+                    )
+                )
+        )
+
+
 materialTextField : String -> String -> String -> List (Attribute Msg) -> String -> Bool -> (String -> Msg) -> Html Msg
 materialTextField str setType placeholder arr icon isValid updateFunction =
     TextField.filled
@@ -198,5 +242,4 @@ materialTextField str setType placeholder arr icon isValid updateFunction =
             |> TextField.setRequired True
             |> TextField.setOnInput updateFunction
             |> TextField.setValid (not (String.isEmpty str))
-
         )

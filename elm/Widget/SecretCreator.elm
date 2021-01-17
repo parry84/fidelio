@@ -1,4 +1,4 @@
-module Widget.SecretCreator exposing (..)
+port module Widget.SecretCreator exposing (..)
 
 import Api.Generated exposing (InputSecret, Link, Secret)
 import Api.Http exposing (postSecretAction)
@@ -35,6 +35,9 @@ type FormField
     | Password
 
 
+port copyLink : () -> Cmd msg
+
+
 initialModel : Model
 initialModel =
     { payload = Nothing
@@ -63,6 +66,7 @@ type Msg
     | SubmitForm
     | Response (Result Http.Error Link)
     | SetPasswordVisibility
+    | CopyToClipboard
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -113,6 +117,9 @@ update msg model =
         SetPasswordVisibility ->
             ( { model | passwordVisible = not model.passwordVisible }, Cmd.none )
 
+        CopyToClipboard ->
+            ( model, copyLink () )
+
 
 view : Model -> Html Msg
 view model =
@@ -142,7 +149,8 @@ linkView secretLink =
             secretLink.link
     in
     [ h4 [ Typography.headline4 ] [ text "🔑 Link to the secret:" ]
-    , a [ Typography.button, href link ] [ text link ]
+    , pre [ id "link", Typography.button ] [ text link ]
+    , Button.raised (Button.config |> Button.setOnClick CopyToClipboard) "Copy to clipboard"
     ]
 
 

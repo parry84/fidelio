@@ -1,4 +1,4 @@
-module Widget.SecretViewer exposing (..)
+port module Widget.SecretViewer exposing (..)
 
 import Api.Generated exposing (InputPassword, OutputSecret, Secret, SecretViewerFlags)
 import Api.Http exposing (getSecretAction)
@@ -25,6 +25,9 @@ type alias Model =
     , response : Maybe String
     , passwordVisible : Bool
     }
+
+
+port copySecret : () -> Cmd msg
 
 
 init : Model -> ( Model, Cmd msg )
@@ -54,6 +57,7 @@ type Msg
     | SubmitForm
     | Response (Result Http.Error OutputSecret)
     | SetPasswordVisibility
+    | CopyToClipboard
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -101,6 +105,9 @@ update msg model =
         SetPasswordVisibility ->
             ( { model | passwordVisible = not model.passwordVisible }, Cmd.none )
 
+        CopyToClipboard ->
+            ( model, copySecret () )
+
 
 view : Model -> Html Msg
 view model =
@@ -126,7 +133,8 @@ decryptView model =
 secretView : String -> List (Html Msg)
 secretView plaintext =
     [ h4 [ Typography.headline4 ] [ text "🔑 The secret:" ]
-    , pre [ Typography.button ] [ text plaintext ]
+    , pre [ id "secret", Typography.button ] [ text plaintext ]
+    , Button.raised (Button.config |> Button.setOnClick CopyToClipboard) "Copy to clipboard"
     , p [ Typography.body2 ] [ text "pay attention: we will show it only once." ]
     ]
 

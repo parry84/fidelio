@@ -7,6 +7,7 @@
     "dependencies": {
         "direct": {
             "NoRedInk/elm-json-decode-pipeline": "1.0.0",
+            "SiriusStarr/elm-password-strength": "1.0.2",
             "aforemny/material-components-web-elm": "6.0.0",
             "billstclair/elm-crypto-string": "3.0.1",
             "elm/browser": "1.0.2",
@@ -30,6 +31,7 @@
             "elm/url": "1.0.0",
             "elm/virtual-dom": "1.0.2",
             "elm-community/array-extra": "2.3.0",
+            "elm-community/dict-extra": "2.4.0",
             "elm-community/list-extra": "8.2.4",
             "elm-community/result-extra": "2.4.0",
             "ktonon/elm-word": "2.1.2",

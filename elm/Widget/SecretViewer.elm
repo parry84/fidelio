@@ -13,6 +13,7 @@ import Material.Button as Button
 import Material.TextField as TextField
 import Material.Typography as Typography
 import Random exposing (Seed, initialSeed)
+import Widget.Helper exposing (layout)
 
 
 type alias Model =
@@ -96,29 +97,31 @@ update msg model =
 
 view : Model -> Html Msg
 view model =
-    case model.plaintext of
-        Nothing ->
-            div [ class "container h-100" ]
-                [ div [ class "row h-50 justify-content-center align-items-center" ]
-                    [ div [ class "text-center" ]
-                        [ h4 [ Typography.headline4 ] [ text "🔑 This message requires a passphrase:" ]
-                        , materialTextField (Maybe.withDefault "" model.password) "text" "Enter the passphrase here" [] "face" True SetPassword
-                        , buttonView model
-                        , p [ Typography.body2 ] [ text "pay attention: we will show it only once." ]
-                        ]
-                    ]
-                ]
+    layout
+        (case model.plaintext of
+            Nothing ->
+                decryptView model
 
-        Just plaintext ->
-            div [ class "container h-100" ]
-                [ div [ class "row h-50 justify-content-center align-items-center" ]
-                    [ div [ class "text-center" ]
-                        [ h4 [ Typography.headline4 ] [ text "🔑 The secret:" ]
-                        , pre [ Typography.button ] [ text plaintext ]
-                        , p [ Typography.body2 ] [ text "pay attention: we will show it only once." ]
-                        ]
-                    ]
-                ]
+            Just secret ->
+                secretView secret
+        )
+
+
+decryptView : Model -> List (Html Msg)
+decryptView model =
+    [ h4 [ Typography.headline4 ] [ text "🔑 This message requires a passphrase:" ]
+    , materialTextField (Maybe.withDefault "" model.password) "text" "Enter the passphrase here" [] "face" True SetPassword
+    , buttonView model
+    , p [ Typography.body2 ] [ text "pay attention: we will show it only once." ]
+    ]
+
+
+secretView : String -> List (Html Msg)
+secretView plaintext =
+    [ h4 [ Typography.headline4 ] [ text "🔑 The secret:" ]
+    , pre [ Typography.button ] [ text plaintext ]
+    , p [ Typography.body2 ] [ text "pay attention: we will show it only once." ]
+    ]
 
 
 buttonView : Model -> Html Msg

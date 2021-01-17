@@ -4,16 +4,20 @@ import Api.Generated exposing (InputSecret, Link, Secret)
 import Api.Http exposing (postSecretAction)
 import Crypto.Hash
 import Crypto.Strings as Strings
+import Dict exposing (Dict)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import Http
 import Material.Button as Button
 import Material.TextField as TextField
+import Material.TextField.Icon as TextFieldIcon
 import Material.Typography as Typography
 import Random exposing (Seed, initialSeed)
+import Rumkin exposing (Strength(..), getStats, parseCommonList, parseFrequencyList)
 import Task
 import Time exposing (Posix)
+import Widget.Helper exposing (layout)
 
 
 type alias Model =
@@ -105,32 +109,72 @@ update msg model =
 
 view : Model -> Html Msg
 view model =
-    case model.secret of
-        Nothing ->
-            div [ class "container h-100" ]
-                [ div [ class "row h-50 justify-content-center align-items-center" ]
-                    [ div [ class "text-center" ]
-                        [ h4 [ Typography.headline4 ] [ text "🔑 Create a new secret:" ]
-                        , materialTextField (Maybe.withDefault "" model.payload) "text" "Secret content goes here..." [] "face" True SetPayload
-                        , materialTextField (Maybe.withDefault "" model.password) "text" "A word or phrase that's difficult to guess" [] "face" True SetPassword
-                        , buttonView model
-                        ]
-                    ]
-                ]
+    layout
+        (case model.secret of
+            Nothing ->
+                creatorForm model
 
-        Just secret ->
+            Just secret ->
+                linkView secret
+        )
+
+
+creatorForm : Model -> List (Html Msg)
+creatorForm model =
+    [ h4 [ Typography.headline4 ] [ text "🔑 Create a new secret:" ]
+    , materialTextField (Maybe.withDefault "" model.payload) "text" "Secret content goes here..." [] "face" True SetPayload
+    , materialTextField (Maybe.withDefault "" model.password) "password" "A word or phrase that's difficult to guess" [] "face" True SetPassword
+    , div [] [text ""]
+    ]
+        ++ passwordStrength model.password
+        ++ [ buttonView model
+           ]
+
+
+linkView : Link -> List (Html Msg)
+linkView secretLink =
+    let
+        link =
+            secretLink.link
+    in
+    [ h4 [ Typography.headline4 ] [ text "🔑 Link to the secret:" ]
+    , a [ Typography.button, href link ] [ text link ]
+    ]
+
+
+passwordStrength : Maybe String -> List (Html Msg)
+passwordStrength maybeBassword =
+    case maybeBassword of
+        Just password ->
             let
-                link =
-                    secret.link
+                stats =
+                    Rumkin.getStats password
+
+                strength =
+                    stats.strength
             in
-            div [ class "container h-100" ]
-                [ div [ class "row h-50 justify-content-center align-items-center" ]
-                    [ div [ class "text-center" ]
-                        [ h4 [ Typography.headline4 ] [ text "🔑 Link to the secret:" ]
-                        , a [ Typography.button, href link ] [ text link ]
-                        ]
-                    ]
+            [ div [ Typography.caption ]
+                [ text "Strength: "
+                , case strength of
+                    VeryWeak ->
+                        text "very weak"
+
+                    Weak ->
+                        text "weak"
+
+                    Reasonable ->
+                        text "reasonable"
+
+                    Strong ->
+                        text "strong"
+
+                    VeryStrong ->
+                        text "very strong"
                 ]
+            ]
+
+        Nothing ->
+            []
 
 
 buttonView : Model -> Html Msg
@@ -154,4 +198,5 @@ materialTextField str setType placeholder arr icon isValid updateFunction =
             |> TextField.setRequired True
             |> TextField.setOnInput updateFunction
             |> TextField.setValid (not (String.isEmpty str))
+
         )

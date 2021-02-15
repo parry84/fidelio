@@ -20,8 +20,7 @@ instance Controller SecretsController where
         maybeSecret <- fetchOneOrNothing secretId
         maybeSecret |> \case
             Just secret -> render $ ShowViewOk $ show $ get #id secret
-            Nothing -> render $ ShowViewError "NOT_FOUND"
-
+            Nothing -> render $ ShowViewError "not_found"
 
     action GetAction = do
         let id = param @(Id Secret) "id"
@@ -40,13 +39,18 @@ instance Controller SecretsController where
     action CreateSecretAction = do
         let secret = newRecord @Secret
         let baseUrl' = baseUrl getConfig
+        let lifetime = param @(Text) "lifetime"
         secret
             |> buildSecret
             |> ifValid \case
                 Left _ -> renderPlain "Error"
                 Right secret -> do
                     secret <- secret |> createRecord
+                    let now = get #createdAt secret
+                    let expiresAt = expiration now lifetime
                     let id = get #id secret
+                    let secret2 = set #expiresAt expiresAt secret
+                    secret3 <- secret2 |> updateRecord
                     let link = baseUrl' ++ "/ShowSecret?secretId=" ++ show id
                     renderJson $ linkToJSON $ Link link
 
@@ -61,8 +65,15 @@ instance FromJSON InputPassword where
         <$> v .: "id"
         <*> v .: "password"
 
+expiration :: UTCTime -> Text -> UTCTime
+expiration now lifetime = 
+    if lifetime == "Lifetime1d" then
+         addUTCTime 100000 now
+    else now
+
 buildSecret secret = secret
     |> fill @'["payload"]
     |> fill @'["password"]
+
 
 buildOutputSecret secret = OutputSecret (get #payload secret)

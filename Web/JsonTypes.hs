@@ -35,16 +35,16 @@ instance ToJSON Lifetime where
 
 instance HasElmType Lifetime where
   elmDefinition =
-    Just $ deriveElmTypeDefinition @Lifetime LHTE.defaultOptions "Api.Lifetime.Lifetime"
+    Just $ deriveElmTypeDefinition @Lifetime LHTE.defaultOptions "Api.Generated.Lifetime"
 instance HasElmEncoder Aeson.Value Lifetime where
     elmEncoderDefinition =
         --Just $ deriveElmJSONEncoder @Lifetime (LHTE.Options lifetimeJ) Aeson.defaultOptions { constructorTagModifier = lifetimeJ } "Api.Generated.Lifetime.encoder"
-        Just $ deriveElmJSONEncoder @Lifetime LHTE.defaultOptions Aeson.defaultOptions "Api.Lifetime.encoder"
+        Just $ deriveElmJSONEncoder @Lifetime LHTE.defaultOptions Aeson.defaultOptions "Api.Generated.Lifetime.encoder"
 
 instance HasElmDecoder Aeson.Value Lifetime where
     elmDecoderDefinition =
         --Just $ deriveElmJSONEncoder @Lifetime (LHTE.Options lifetimeJ) Aeson.defaultOptions { constructorTagModifier = lifetimeJ } "Api.Generated.Lifetime.encoder"
-        Just $ deriveElmJSONEncoder @Lifetime LHTE.defaultOptions Aeson.defaultOptions "Api.Lifetime.decoder"
+        Just $ deriveElmJSONEncoder @Lifetime LHTE.defaultOptions Aeson.defaultOptions "Api.Generated.Lifetime.decoder"
 
 lifetimeJ :: String -> String
 lifetimeJ "Lifetime5m"  = "5m"

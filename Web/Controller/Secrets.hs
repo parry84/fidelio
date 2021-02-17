@@ -19,8 +19,15 @@ instance Controller SecretsController where
     action ShowSecretAction { secretId } = do
         maybeSecret <- fetchOneOrNothing secretId
         maybeSecret |> \case
-            Just secret -> render $ ShowViewOk $ show $ get #id secret
+            Just secret -> do
+                let expiresAt = get #expiresAt secret
+                currentTime <- getCurrentTime
+                render $ if expiresAt > currentTime then
+                    ShowViewOk $ show $ get #id secret
+                else
+                    ShowViewError "not_found"
             Nothing -> render $ ShowViewError "not_found"
+--TODO create a type for that error constants
 
     action GetAction = do
         let id = param @(Id Secret) "id"
@@ -43,14 +50,14 @@ instance Controller SecretsController where
         secret
             |> buildSecret
             |> ifValid \case
-                Left _ -> renderPlain "Error"
+                Left _ -> renderPlain "bad_request"
                 Right secret -> do
                     secret <- secret |> createRecord
                     let now = get #createdAt secret
                     let expiresAt = expiration now lifetime
                     let id = get #id secret
-                    let secret2 = set #expiresAt expiresAt secret
-                    secret3 <- secret2 |> updateRecord
+                    let expiringSecret = set #expiresAt expiresAt secret
+                    expiringSecret |> updateRecord
                     let link = baseUrl' ++ "/ShowSecret?secretId=" ++ show id
                     renderJson $ linkToJSON $ Link link
 
@@ -65,11 +72,19 @@ instance FromJSON InputPassword where
         <$> v .: "id"
         <*> v .: "password"
 
+-- TODO convert read to Lifetime type before this switch
 expiration :: UTCTime -> Text -> UTCTime
-expiration now lifetime = 
-    if lifetime == "Lifetime1d" then
-         addUTCTime 100000 now
-    else now
+expiration now lifetime = case lifetime of
+    "5m" -> addUTCTime (5*60) now
+    "10m" -> addUTCTime (10*60) now
+    "15m" -> addUTCTime (15*60) now
+    "1h" -> addUTCTime (3600) now
+    "4h" -> addUTCTime (4*3600) now
+    "12h" -> addUTCTime (12*3600) now
+    "1d" -> addUTCTime (24*3600) now
+    "3d" -> addUTCTime (3*24*3600) now
+    "7d" -> addUTCTime (7*24*3600) now
+    _ ->  addUTCTime 0 now
 
 buildSecret secret = secret
     |> fill @'["payload"]

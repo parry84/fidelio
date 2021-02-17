@@ -318,7 +318,7 @@ remainingItems =
         [ text "15 mins" ]
     , SelectItem.selectItem
         (SelectItem.config { value = Just Lifetime1h })
-        [ text "1 house" ]
+        [ text "1 hour" ]
     , SelectItem.selectItem
         (SelectItem.config { value = Just Lifetime4h })
         [ text "4 hours" ]

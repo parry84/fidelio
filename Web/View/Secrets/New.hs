@@ -1,5 +1,5 @@
 module Web.View.Secrets.New where
-import Web.View.Prelude
+import           Web.View.Prelude
 
 data NewView = NewView { secret :: Secret }
 

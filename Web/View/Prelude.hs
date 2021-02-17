@@ -6,9 +6,9 @@ module Web.View.Prelude
 , module Application.Helper.View
 ) where
 
-import IHP.ViewPrelude
-import Web.View.Layout
-import Generated.Types
-import Web.Types
-import Web.Routes ()
-import Application.Helper.View
+import           Application.Helper.View
+import           Generated.Types
+import           IHP.ViewPrelude
+import           Web.Routes              ()
+import           Web.Types
+import           Web.View.Layout

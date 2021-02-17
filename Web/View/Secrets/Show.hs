@@ -1,11 +1,6 @@
 module Web.View.Secrets.Show where
 
-import Web.View.Prelude
-  ( Text,
-    View (html),
-    hsx,
-    secretViewerWidget
-  )
+import           Web.View.Prelude (Text, View (html), hsx, secretViewerWidget)
 
 data ShowView = ShowViewOk {secretId :: Text} | ShowViewError {error :: Text}
 

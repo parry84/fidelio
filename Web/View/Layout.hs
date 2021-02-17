@@ -1,13 +1,13 @@
 module Web.View.Layout (defaultLayout, Html) where
 
-import Generated.Types
-import IHP.Controller.RequestContext as RC
-import IHP.Environment
-import IHP.ViewPrelude
-import qualified Text.Blaze.Html5 as H
-import qualified Text.Blaze.Html5.Attributes as A
-import Web.Routes
-import Web.Types
+import           Generated.Types
+import           IHP.Controller.RequestContext as RC
+import           IHP.Environment
+import           IHP.ViewPrelude
+import qualified Text.Blaze.Html5              as H
+import qualified Text.Blaze.Html5.Attributes   as A
+import           Web.Routes
+import           Web.Types
 
 defaultLayout :: Html -> Html
 defaultLayout inner =

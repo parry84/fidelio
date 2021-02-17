@@ -1,13 +1,13 @@
 module Web.Types where
 
-import IHP.Prelude
-import IHP.ModelSupport
-import Generated.Types
+import           Generated.Types
+import           IHP.ModelSupport
+import           IHP.Prelude
 
 data WebApplication = WebApplication deriving (Eq, Show)
 
 
-data StaticController 
+data StaticController
     = CreatorAction
     | AboutAction
     deriving (Eq, Show, Data)

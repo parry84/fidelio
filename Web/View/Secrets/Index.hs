@@ -1,6 +1,6 @@
 module Web.View.Secrets.Index where
-import Web.View.Prelude
-import Web.JsonTypes ( secretToJSON )
+import           Web.JsonTypes    (secretToJSON)
+import           Web.View.Prelude
 
 data IndexView = IndexView { secrets :: [Secret] }
 

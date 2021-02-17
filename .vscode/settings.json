@@ -1,5 +1,6 @@
 {
     "terminal.integrated.shell.osx": "/bin/zsh",
     "nixEnvSelector.nixFile": "${workspaceRoot}/default.nix",
-    "haskell.formattingProvider": "stylish-haskell"
+    "haskell.formattingProvider": "stylish-haskell",
+    "editor.formatOnSave": true
 }

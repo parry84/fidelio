@@ -1,6 +1,6 @@
 port module Widget.SecretCreator exposing (..)
 
-import Api.Generated exposing (InputSecret, Link, Secret, Lifetime)
+import Api.Generated exposing (InputSecret, Lifetime(..), Link, Secret)
 import Api.Http exposing (postSecretAction)
 import Crypto.Hash
 import Crypto.Strings as Strings
@@ -21,7 +21,6 @@ import Rumkin exposing (Strength(..), getStats, parseCommonList, parseFrequencyL
 import Task
 import Time exposing (Posix)
 import Widget.Helper exposing (layout)
-import Api.Generated exposing (Lifetime(..))
 
 
 type alias Model =
@@ -93,13 +92,15 @@ update msg model =
             ( { model | password = Just password }, Task.perform InitializeSeed Time.now )
 
         SetLifetime lifetime ->
-            ( { model | lifetime = lifetime }, Cmd.none)
+            ( { model | lifetime = lifetime }, Cmd.none )
 
         SubmitForm ->
             case ( model.password, model.payload, model.seed ) of
                 ( Just passphrase, Just plaintext, Just seed ) ->
                     let
-                        lifetime = Maybe.withDefault Lifetime1h model.lifetime
+                        lifetime =
+                            Maybe.withDefault Lifetime1h model.lifetime
+
                         hashedPassword =
                             Crypto.Hash.sha512 passphrase
 
@@ -286,24 +287,26 @@ passwordStrength maybeBassword =
 
 
 lifetimeSelect : Model -> Html Msg
-lifetimeSelect
- model =
-    div textFieldContainer [
-    Select.filled
-        (Select.config
-            |> Select.setAttributes [ style "width" "100%" ]
-            |> Select.setLabel (Just "Lifetime")
-            |> Select.setSelected (Just model.lifetime)
-            |> Select.setOnChange SetLifetime
-        )
-        firstItem
-        remainingItems ]
+lifetimeSelect model =
+    div textFieldContainer
+        [ Select.filled
+            (Select.config
+                |> Select.setAttributes [ style "width" "100%" ]
+                |> Select.setLabel (Just "Lifetime")
+                |> Select.setSelected (Just model.lifetime)
+                |> Select.setOnChange SetLifetime
+            )
+            firstItem
+            remainingItems
+        ]
+
 
 firstItem : SelectItem (Maybe a) msg
 firstItem =
     SelectItem.selectItem
         (SelectItem.config { value = Nothing })
         [ text "" ]
+
 
 remainingItems : List (SelectItem (Maybe Lifetime) msg)
 remainingItems =
@@ -335,7 +338,6 @@ remainingItems =
         (SelectItem.config { value = Just Lifetime7d })
         [ text "7 days" ]
     ]
-
 
 
 textFieldContainer : List (Html.Attribute msg)

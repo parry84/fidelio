@@ -21,6 +21,7 @@ import Rumkin exposing (Strength(..), getStats, parseCommonList, parseFrequencyL
 import Task
 import Time exposing (Posix)
 import Widget.Helper exposing (layout)
+import Api.Generated exposing (Lifetime(..))
 
 
 type alias Model =

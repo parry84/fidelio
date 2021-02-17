@@ -1,6 +1,6 @@
 port module Widget.SecretCreator exposing (..)
 
-import Api.Generated exposing (InputSecret, Link, Secret)
+import Api.Generated exposing (InputSecret, Link, Secret, Lifetime)
 import Api.Http exposing (postSecretAction)
 import Crypto.Hash
 import Crypto.Strings as Strings
@@ -11,6 +11,8 @@ import Html.Events exposing (..)
 import Http
 import Material.Button as Button
 import Material.HelperText as HelperText
+import Material.Select as Select
+import Material.Select.Item as SelectItem exposing (SelectItem)
 import Material.TextField as TextField
 import Material.TextField.Icon as TextFieldIcon
 import Material.Typography as Typography
@@ -19,11 +21,13 @@ import Rumkin exposing (Strength(..), getStats, parseCommonList, parseFrequencyL
 import Task
 import Time exposing (Posix)
 import Widget.Helper exposing (layout)
+import Api.Generated exposing (Lifetime(..))
 
 
 type alias Model =
     { payload : Maybe String
     , password : Maybe String
+    , lifetime : Maybe Lifetime
     , secret : Maybe Link
     , seed : Maybe Seed
     , passwordVisible : Bool
@@ -42,6 +46,7 @@ initialModel : Model
 initialModel =
     { payload = Nothing
     , password = Nothing
+    , lifetime = Nothing
     , secret = Nothing
     , seed = Nothing
     , passwordVisible = True
@@ -63,6 +68,7 @@ type Msg
     | InitializeSeed Posix
     | SetPayload String
     | SetPassword String
+    | SetLifetime (Maybe Lifetime)
     | SubmitForm
     | Response (Result Http.Error Link)
     | SetPasswordVisibility
@@ -81,15 +87,19 @@ update msg model =
             )
 
         SetPayload payload ->
-            ( { model | payload = Just payload }, Task.perform InitializeSeed Time.now )
+            ( { model | payload = Just payload }, Cmd.none )
 
         SetPassword password ->
             ( { model | password = Just password }, Task.perform InitializeSeed Time.now )
+
+        SetLifetime lifetime ->
+            ( { model | lifetime = lifetime }, Cmd.none)
 
         SubmitForm ->
             case ( model.password, model.payload, model.seed ) of
                 ( Just passphrase, Just plaintext, Just seed ) ->
                     let
+                        lifetime = Maybe.withDefault Lifetime1h model.lifetime
                         hashedPassword =
                             Crypto.Hash.sha512 passphrase
 
@@ -102,7 +112,7 @@ update msg model =
                                     textAndSeed
                     in
                     ( { model | secret = Nothing }
-                    , postSecretAction (InputSecret ciphertext hashedPassword) Response
+                    , postSecretAction (InputSecret ciphertext hashedPassword lifetime) Response
                     )
 
                 ( _, _, _ ) ->
@@ -138,6 +148,7 @@ creatorForm model =
     [ h4 [ Typography.headline4 ] [ text "🔑 Create a new secret:" ]
     , secretField model
     , passwordField model
+    , lifetimeSelect model
     , buttonView model
     ]
 
@@ -189,7 +200,7 @@ passwordField model =
             (TextField.config
                 |> TextField.setType (Just textType)
                 |> TextField.setAttributes [ style "width" "100%", class "material-text-field" ]
-                |> TextField.setPlaceholder (Just "A word or phrase that's difficult to guess")
+                |> TextField.setPlaceholder (Just "A word or phrase that's hard to guess")
                 |> TextField.setValue (Just value)
                 |> TextField.setRequired True
                 |> TextField.setOnInput SetPassword
@@ -272,6 +283,59 @@ passwordStrength maybeBassword =
 
         Nothing ->
             []
+
+
+lifetimeSelect : Model -> Html Msg
+lifetimeSelect
+ model =
+    div textFieldContainer [
+    Select.filled
+        (Select.config
+            |> Select.setAttributes [ style "width" "100%" ]
+            |> Select.setLabel (Just "Lifetime")
+            |> Select.setSelected (Just model.lifetime)
+            |> Select.setOnChange SetLifetime
+        )
+        firstItem
+        remainingItems ]
+
+firstItem : SelectItem (Maybe a) msg
+firstItem =
+    SelectItem.selectItem
+        (SelectItem.config { value = Nothing })
+        [ text "" ]
+
+remainingItems : List (SelectItem (Maybe Lifetime) msg)
+remainingItems =
+    [ SelectItem.selectItem
+        (SelectItem.config { value = Just Lifetime5m })
+        [ text "5 mins" ]
+    , SelectItem.selectItem
+        (SelectItem.config { value = Just Lifetime10m })
+        [ text "10 mins" ]
+    , SelectItem.selectItem
+        (SelectItem.config { value = Just Lifetime15m })
+        [ text "15 mins" ]
+    , SelectItem.selectItem
+        (SelectItem.config { value = Just Lifetime1h })
+        [ text "1 hour" ]
+    , SelectItem.selectItem
+        (SelectItem.config { value = Just Lifetime4h })
+        [ text "4 hours" ]
+    , SelectItem.selectItem
+        (SelectItem.config { value = Just Lifetime12h })
+        [ text "12 hours" ]
+    , SelectItem.selectItem
+        (SelectItem.config { value = Just Lifetime1d })
+        [ text "1 day" ]
+    , SelectItem.selectItem
+        (SelectItem.config { value = Just Lifetime3d })
+        [ text "3 days" ]
+    , SelectItem.selectItem
+        (SelectItem.config { value = Just Lifetime7d })
+        [ text "7 days" ]
+    ]
+
 
 
 textFieldContainer : List (Html.Attribute msg)

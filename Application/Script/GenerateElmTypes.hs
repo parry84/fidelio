@@ -16,13 +16,14 @@ run :: Script
 run = do
   let definitions =
         Simplification.simplifyDefinition
-          <$> jsonDefinitions @Widget
+          <$> jsonDefinitions @Lifetime
           <> jsonDefinitions @SecretViewerFlagsJSON
           <> jsonDefinitions @SecretJSON
           <> jsonDefinitions @LinkJSON
           <> jsonDefinitions @InputSecretJSON
           <> jsonDefinitions @InputPasswordJSON
           <> jsonDefinitions @OutputSecretJSON
+          <> jsonDefinitions @Widget
 
       modules = Pretty.modules definitions
 

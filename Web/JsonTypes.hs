@@ -7,11 +7,54 @@ import IHP.ControllerPrelude
 import qualified Data.Aeson as Aeson
 import GHC.Generics (Generic)
 import qualified Generics.SOP as SOP
-import Language.Haskell.To.Elm
+import Language.Haskell.To.Elm as LHTE
 import Application.Lib.DerivingViaElm ( ElmType(..) )
 
 -- JSON serializable types and functions
 -- for exposing IHP data to Elm and JSON responses
+data Lifetime
+    = Lifetime5m
+    | Lifetime10m
+    | Lifetime15m
+    | Lifetime1h
+    | Lifetime4h
+    | Lifetime12h
+    | Lifetime1d
+    | Lifetime3d
+    | Lifetime7d
+    deriving ( Eq, Show, Generic
+             , SOP.Generic
+             , SOP.HasDatatypeInfo
+             )
+
+instance FromJSON Lifetime where
+    parseJSON = genericParseJSON Aeson.defaultOptions { constructorTagModifier = lifetimeJ }
+
+instance ToJSON Lifetime where
+    toJSON = genericToJSON Aeson.defaultOptions { constructorTagModifier = lifetimeJ }
+
+instance HasElmType Lifetime where
+  elmDefinition =
+    Just $ deriveElmTypeDefinition @Lifetime LHTE.defaultOptions "Api.Generated.Lifetime"
+instance HasElmEncoder Aeson.Value Lifetime where
+    elmEncoderDefinition =
+        Just $ deriveElmJSONEncoder @Lifetime (LHTE.Options lifetimeJ) Aeson.defaultOptions { constructorTagModifier = lifetimeJ } "Api.Generated.encoder"
+
+instance HasElmDecoder Aeson.Value Lifetime where
+    elmDecoderDefinition =
+        Just $ deriveElmJSONDecoder @Lifetime (LHTE.Options lifetimeJ) Aeson.defaultOptions { constructorTagModifier = lifetimeJ } "Api.Generated.decoder"
+
+lifetimeJ :: String -> String
+lifetimeJ "Lifetime5m"  = "5m"
+lifetimeJ "Lifetime10m" = "10m"
+lifetimeJ "Lifetime15m" = "15m"
+lifetimeJ "Lifetime1h"  = "1h"
+lifetimeJ "Lifetime4h"  = "4h"
+lifetimeJ "Lifetime12h" = "12h"
+lifetimeJ "Lifetime1d"  = "1d"
+lifetimeJ "Lifetime3d"  = "3d"
+lifetimeJ "Lifetime7d"  = "7d"
+lifetimeJ s = s
 
 data SecretJSON = SecretJSON
   { id :: Text
@@ -78,11 +121,12 @@ secretViewerFlagsJSON secretViewerFlags =
         secretId = get #secretId secretViewerFlags
     }
 
-data InputSecret = InputSecret {payload :: Text, password :: Text} deriving (Eq, Show)
+data InputSecret = InputSecret {payload :: Text, password :: Text, lifetime :: Lifetime} deriving (Eq, Show)
 
 data InputSecretJSON = InputSecretJSON
   { payload :: Text
   , password :: Text
+  , lifetime :: Lifetime
   } deriving ( Generic
              , SOP.Generic
              , SOP.HasDatatypeInfo
@@ -98,7 +142,8 @@ inputSecretToJSON :: InputSecret -> InputSecretJSON
 inputSecretToJSON secret =
     InputSecretJSON {
         payload = get #payload secret,
-        password = get #password secret
+        password = get #password secret,
+        lifetime = get #lifetime secret
     }
 
 data InputPassword = InputPassword {id :: Text, password :: Text} deriving (Eq, Show)

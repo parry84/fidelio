@@ -5,36 +5,81 @@ import Json.Decode.Pipeline
 import Json.Encode
 
 
-type Widget
-    = SecretViewerWidget SecretViewerFlags
-    | SecretCreatorWidget
+type Lifetime
+    = Lifetime5m
+    | Lifetime10m
+    | Lifetime15m
+    | Lifetime1h
+    | Lifetime4h
+    | Lifetime12h
+    | Lifetime1d
+    | Lifetime3d
+    | Lifetime7d
 
 
-widgetEncoder : Widget -> Json.Encode.Value
-widgetEncoder a =
+encoder : Lifetime -> Json.Encode.Value
+encoder a =
     case a of
-        SecretViewerWidget b ->
-            Json.Encode.object
-                [ ( "tag", Json.Encode.string "SecretViewerWidget" )
-                , ( "contents", secretViewerFlagsEncoder b )
-                ]
+        Lifetime5m ->
+            Json.Encode.string "5m"
 
-        SecretCreatorWidget ->
-            Json.Encode.object [ ( "tag", Json.Encode.string "SecretCreatorWidget" ) ]
+        Lifetime10m ->
+            Json.Encode.string "10m"
+
+        Lifetime15m ->
+            Json.Encode.string "15m"
+
+        Lifetime1h ->
+            Json.Encode.string "1h"
+
+        Lifetime4h ->
+            Json.Encode.string "4h"
+
+        Lifetime12h ->
+            Json.Encode.string "12h"
+
+        Lifetime1d ->
+            Json.Encode.string "1d"
+
+        Lifetime3d ->
+            Json.Encode.string "3d"
+
+        Lifetime7d ->
+            Json.Encode.string "7d"
 
 
-widgetDecoder : Json.Decode.Decoder Widget
-widgetDecoder =
-    Json.Decode.field "tag" Json.Decode.string
+decoder : Json.Decode.Decoder Lifetime
+decoder =
+    Json.Decode.string
         |> Json.Decode.andThen
             (\a ->
                 case a of
-                    "SecretViewerWidget" ->
-                        Json.Decode.succeed SecretViewerWidget
-                            |> Json.Decode.Pipeline.required "contents" secretViewerFlagsDecoder
+                    "5m" ->
+                        Json.Decode.succeed Lifetime5m
 
-                    "SecretCreatorWidget" ->
-                        Json.Decode.succeed SecretCreatorWidget
+                    "10m" ->
+                        Json.Decode.succeed Lifetime10m
+
+                    "15m" ->
+                        Json.Decode.succeed Lifetime15m
+
+                    "1h" ->
+                        Json.Decode.succeed Lifetime1h
+
+                    "4h" ->
+                        Json.Decode.succeed Lifetime4h
+
+                    "12h" ->
+                        Json.Decode.succeed Lifetime12h
+
+                    "1d" ->
+                        Json.Decode.succeed Lifetime1d
+
+                    "3d" ->
+                        Json.Decode.succeed Lifetime3d
+
+                    "7d" ->
+                        Json.Decode.succeed Lifetime7d
 
                     _ ->
                         Json.Decode.fail "No matching constructor"
@@ -93,7 +138,7 @@ linkDecoder =
 
 
 type alias InputSecret =
-    { payload : String, password : String }
+    { payload : String, password : String, lifetime : Lifetime }
 
 
 inputSecretEncoder : InputSecret -> Json.Encode.Value
@@ -101,6 +146,7 @@ inputSecretEncoder a =
     Json.Encode.object
         [ ( "payload", Json.Encode.string a.payload )
         , ( "password", Json.Encode.string a.password )
+        , ( "lifetime", encoder a.lifetime )
         ]
 
 
@@ -109,6 +155,7 @@ inputSecretDecoder =
     Json.Decode.succeed InputSecret
         |> Json.Decode.Pipeline.required "payload" Json.Decode.string
         |> Json.Decode.Pipeline.required "password" Json.Decode.string
+        |> Json.Decode.Pipeline.required "lifetime" decoder
 
 
 type alias InputPassword =
@@ -143,3 +190,39 @@ outputSecretDecoder : Json.Decode.Decoder OutputSecret
 outputSecretDecoder =
     Json.Decode.succeed OutputSecret
         |> Json.Decode.Pipeline.required "payload" Json.Decode.string
+
+
+type Widget
+    = SecretViewerWidget SecretViewerFlags
+    | SecretCreatorWidget
+
+
+widgetEncoder : Widget -> Json.Encode.Value
+widgetEncoder a =
+    case a of
+        SecretViewerWidget b ->
+            Json.Encode.object
+                [ ( "tag", Json.Encode.string "SecretViewerWidget" )
+                , ( "contents", secretViewerFlagsEncoder b )
+                ]
+
+        SecretCreatorWidget ->
+            Json.Encode.object [ ( "tag", Json.Encode.string "SecretCreatorWidget" ) ]
+
+
+widgetDecoder : Json.Decode.Decoder Widget
+widgetDecoder =
+    Json.Decode.field "tag" Json.Decode.string
+        |> Json.Decode.andThen
+            (\a ->
+                case a of
+                    "SecretViewerWidget" ->
+                        Json.Decode.succeed SecretViewerWidget
+                            |> Json.Decode.Pipeline.required "contents" secretViewerFlagsDecoder
+
+                    "SecretCreatorWidget" ->
+                        Json.Decode.succeed SecretCreatorWidget
+
+                    _ ->
+                        Json.Decode.fail "No matching constructor"
+            )

@@ -10,6 +10,7 @@ import Html.Events exposing (..)
 import Http
 import Json.Decode as D
 import Material.Button as Button
+import Material.HelperText as HelperText
 import Material.TextField as TextField
 import Material.TextField.Icon as TextFieldIcon
 import Material.Typography as Typography
@@ -22,8 +23,8 @@ type alias Model =
     , chipertext : Maybe String
     , password : Maybe String
     , plaintext : Maybe String
-    , response : Maybe String
     , passwordVisible : Bool
+    , errors : List Http.Error
     }
 
 
@@ -41,8 +42,8 @@ initialModel secretViewerFlags =
     , chipertext = Nothing
     , password = Nothing
     , plaintext = Nothing
-    , response = Nothing
     , passwordVisible = True
+    , errors = []
     }
 
 
@@ -100,7 +101,7 @@ update msg model =
                     ( model, Cmd.none )
 
         Response (Err error) ->
-            ( model, Cmd.none )
+            ( { model | errors = error :: model.errors }, Cmd.none )
 
         SetPasswordVisibility ->
             ( { model | passwordVisible = not model.passwordVisible }, Cmd.none )
@@ -169,19 +170,45 @@ passwordField model =
         value =
             Maybe.withDefault "" model.password
     in
-    TextField.filled
-        (TextField.config
-            |> TextField.setType (Just textType)
-            |> TextField.setAttributes [ style "width" "100%", class "material-text-field" ]
-            |> TextField.setPlaceholder (Just "Enter the password here:")
-            |> TextField.setValue (Just value)
-            |> TextField.setRequired True
-            |> TextField.setOnInput SetPassword
-            |> TextField.setValid (not (String.isEmpty value))
-            |> TextField.setTrailingIcon
-                (Just
-                    (TextFieldIcon.icon icon
-                        |> TextFieldIcon.setOnInteraction SetPasswordVisibility
+    div textFieldContainer
+        ([ TextField.filled
+            (TextField.config
+                |> TextField.setType (Just textType)
+                |> TextField.setAttributes [ style "width" "100%", class "material-text-field" ]
+                |> TextField.setPlaceholder (Just "Enter the password here:")
+                |> TextField.setValue (Just value)
+                |> TextField.setRequired True
+                |> TextField.setOnInput SetPassword
+                |> TextField.setValid (not (String.isEmpty value))
+                |> TextField.setTrailingIcon
+                    (Just
+                        (TextFieldIcon.icon icon
+                            |> TextFieldIcon.setOnInteraction SetPasswordVisibility
+                        )
                     )
-                )
+            )
+         ]
+            ++ passwordError model.errors
         )
+
+
+passwordError : List Http.Error -> List (Html Msg)
+passwordError errors =
+    case errors of
+        [] ->
+            []
+
+        _ ->
+            [ HelperText.helperLine []
+                [ HelperText.helperText
+                    (HelperText.config |> HelperText.setPersistent True)
+                    "Wrong password"
+                ]
+            ]
+
+
+textFieldContainer : List (Html.Attribute msg)
+textFieldContainer =
+    [ class "text-field-container"
+    , style "min-width" "200px"
+    ]

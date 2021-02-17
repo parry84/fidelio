@@ -20,5 +20,6 @@ Content-Type: application/json
 
 {
     "payload": "fidelio",
-    "passowrd": "kubrick"
+    "password": "kubrick",
+    "lifetime": "Lifetime1d"
 }

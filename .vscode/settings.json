@@ -1,4 +1,4 @@
 {
     "terminal.integrated.shell.osx": "/bin/zsh",
-    "nixEnvSelector.nixShellConfig": "${workspaceRoot}/default.nix"
+    "nixEnvSelector.nixFile": "${workspaceRoot}/default.nix"
 }

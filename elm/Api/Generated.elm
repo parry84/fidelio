@@ -1,6 +1,7 @@
 module Api.Generated.Lifetime exposing (..)
 
 import Api.Generated
+import Json.Decode
 import Json.Encode
 
 
@@ -35,32 +36,36 @@ encoder a =
             Json.Encode.string "Lifetime7d"
 
 
-decoder : Api.Generated.Lifetime -> Json.Encode.Value
-decoder a =
-    case a of
-        Api.Generated.Lifetime5m ->
-            Json.Encode.string "Lifetime5m"
+decoder : Json.Decode.Decoder Api.Generated.Lifetime
+decoder =
+    Json.Decode.string |>
+    Json.Decode.andThen (\a -> case a of
+        "Lifetime5m" ->
+            Json.Decode.succeed Api.Generated.Lifetime5m
         
-        Api.Generated.Lifetime10m ->
-            Json.Encode.string "Lifetime10m"
+        "Lifetime10m" ->
+            Json.Decode.succeed Api.Generated.Lifetime10m
         
-        Api.Generated.Lifetime15m ->
-            Json.Encode.string "Lifetime15m"
+        "Lifetime15m" ->
+            Json.Decode.succeed Api.Generated.Lifetime15m
         
-        Api.Generated.Lifetime1h ->
-            Json.Encode.string "Lifetime1h"
+        "Lifetime1h" ->
+            Json.Decode.succeed Api.Generated.Lifetime1h
         
-        Api.Generated.Lifetime4h ->
-            Json.Encode.string "Lifetime4h"
+        "Lifetime4h" ->
+            Json.Decode.succeed Api.Generated.Lifetime4h
         
-        Api.Generated.Lifetime12h ->
-            Json.Encode.string "Lifetime12h"
+        "Lifetime12h" ->
+            Json.Decode.succeed Api.Generated.Lifetime12h
         
-        Api.Generated.Lifetime1d ->
-            Json.Encode.string "Lifetime1d"
+        "Lifetime1d" ->
+            Json.Decode.succeed Api.Generated.Lifetime1d
         
-        Api.Generated.Lifetime3d ->
-            Json.Encode.string "Lifetime3d"
+        "Lifetime3d" ->
+            Json.Decode.succeed Api.Generated.Lifetime3d
         
-        Api.Generated.Lifetime7d ->
-            Json.Encode.string "Lifetime7d"
+        "Lifetime7d" ->
+            Json.Decode.succeed Api.Generated.Lifetime7d
+        
+        _ ->
+            Json.Decode.fail "No matching constructor")

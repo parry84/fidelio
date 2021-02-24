@@ -43,7 +43,18 @@ defaultLayout inner =
               <a class="nav-link" href="/About">About</a>
             </li>
           </ul>
-          <span class="navbar-text my-lg-0 mdc-typography--body2">Coded by <a href="https://parry84.github.io/">parry84</a> with ❤️</span>
+
+          <ul class="navbar-nav ml-md-auto">
+            <li class="nav-item align-middle">
+              <div class="navbar-text mdc-typography--body2  mr-0 mr-md-2" style="margin-top: 15px;">Coded by <a href="https://parry84.github.io/">parry84</a> with ❤️</div>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link mr-0 mr-md-2" href="https://ihpcloud.com/NewUser?referredBy=99167028-d8ad-4d52-841a-92a81f31f81b">
+                <img class="navbar-brand" src="https://ihpcloud.com/deployed-with-ihp-cloud-blue.svg" style="width:100px; margin-top: -0px;" alt="Deployed with IHP Cloud"/>
+              </a>
+            </li>
+          </ul>
+
         </div>
       </nav>
     </footer>

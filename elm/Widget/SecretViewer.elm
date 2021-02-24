@@ -1,6 +1,6 @@
 port module Widget.SecretViewer exposing (..)
 
-import Api.Generated exposing (InputPassword, OutputSecret, Secret, SecretViewerFlags)
+import Api.Generated exposing (InputPassword, OutputSecret, SecretViewerFlags)
 import Api.Http exposing (getSecretAction)
 import Crypto.Hash
 import Crypto.Strings as Strings
@@ -8,13 +8,11 @@ import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import Http
-import Json.Decode as D
 import Material.Button as Button
 import Material.HelperText as HelperText
 import Material.TextField as TextField
 import Material.TextField.Icon as TextFieldIcon
 import Material.Typography as Typography
-import Random exposing (Seed, initialSeed)
 import Widget.Helper exposing (layout)
 
 
@@ -171,7 +169,7 @@ passwordField model =
             Maybe.withDefault "" model.password
     in
     div textFieldContainer
-        ([ TextField.filled
+        (TextField.filled
             (TextField.config
                 |> TextField.setType (Just textType)
                 |> TextField.setAttributes [ style "width" "100%", class "material-text-field" ]
@@ -187,8 +185,7 @@ passwordField model =
                         )
                     )
             )
-         ]
-            ++ passwordError model.errors
+            :: passwordError model.errors
         )
 
 
@@ -211,4 +208,5 @@ textFieldContainer : List (Html.Attribute msg)
 textFieldContainer =
     [ class "text-field-container"
     , style "min-width" "200px"
+    , style "margin-top" "20px"
     ]

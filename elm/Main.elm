@@ -2,9 +2,7 @@ module Main exposing (main)
 
 import Api.Generated
     exposing
-        ( Secret
-        , Widget(..)
-        , secretDecoder
+        ( Widget(..)
         , widgetDecoder
         )
 import Browser
@@ -31,11 +29,11 @@ update msg model =
     case ( msg, model ) of
         ( GotSecretMsg subMsg, SecretModel secret ) ->
             Widget.SecretViewer.update subMsg secret
-                |> updateWith SecretModel GotSecretMsg model
+                |> updateWith SecretModel GotSecretMsg
 
         ( GotSecretCreatorMsg subMsg, SecretCreatorModel subModel ) ->
             Widget.SecretCreator.update subMsg subModel
-                |> updateWith SecretCreatorModel GotSecretCreatorMsg model
+                |> updateWith SecretCreatorModel GotSecretCreatorMsg
 
         ( WidgetErrorMsg, ErrorModel _ ) ->
             ( model, Cmd.none )
@@ -47,10 +45,9 @@ update msg model =
 updateWith :
     (subModel -> Model)
     -> (subMsg -> Msg)
-    -> Model
     -> ( subModel, Cmd subMsg )
     -> ( Model, Cmd Msg )
-updateWith toModel toMsg model ( subModel, subCmd ) =
+updateWith toModel toMsg ( subModel, subCmd ) =
     ( toModel subModel, Cmd.map toMsg subCmd )
 
 

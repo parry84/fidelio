@@ -59,7 +59,7 @@ ihpRequest { method, headers, url, body, expect } =
     Http.request
         { method = method
         , headers =
-            [ Http.header "Accept" "application/json" ] ++ headers
+            Http.header "Accept" "application/json" :: headers
         , url = url
         , body = body
         , expect = expect

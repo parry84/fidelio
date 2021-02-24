@@ -1,10 +1,9 @@
 port module Widget.SecretCreator exposing (..)
 
-import Api.Generated exposing (InputSecret, Lifetime(..), Link, Secret)
+import Api.Generated exposing (InputSecret, Lifetime(..), Link)
 import Api.Http exposing (postSecretAction)
 import Crypto.Hash
 import Crypto.Strings as Strings
-import Dict exposing (Dict)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
@@ -17,7 +16,7 @@ import Material.TextField as TextField
 import Material.TextField.Icon as TextFieldIcon
 import Material.Typography as Typography
 import Random exposing (Seed, initialSeed)
-import Rumkin exposing (Strength(..), getStats, parseCommonList, parseFrequencyList)
+import Rumkin exposing (Strength(..))
 import Task
 import Time exposing (Posix)
 import Widget.Helper exposing (layout)
@@ -33,11 +32,6 @@ type alias Model =
     }
 
 
-type FormField
-    = Payload
-    | Password
-
-
 port copyLink : () -> Cmd msg
 
 
@@ -45,7 +39,7 @@ initialModel : Model
 initialModel =
     { payload = Nothing
     , password = Nothing
-    , lifetime = Nothing
+    , lifetime = Just Lifetime1h
     , secret = Nothing
     , seed = Nothing
     , passwordVisible = True
@@ -104,7 +98,7 @@ update msg model =
                         hashedPassword =
                             Crypto.Hash.sha512 passphrase
 
-                        ( ciphertext, seed1 ) =
+                        ( ciphertext, _ ) =
                             case Strings.encrypt seed passphrase plaintext of
                                 Err msg1 ->
                                     ( "Error: " ++ msg1, seed )
@@ -168,12 +162,14 @@ linkView secretLink =
 
 buttonView : Model -> Html Msg
 buttonView model =
-    case ( model.password, model.payload, model.seed ) of
-        ( Just _, Just _, Just _ ) ->
-            Button.raised (Button.config |> Button.setOnClick SubmitForm) "Create link"
+    div textFieldContainer
+        [ case ( model.password, model.payload, model.seed ) of
+            ( Just _, Just _, Just _ ) ->
+                Button.raised (Button.config |> Button.setOnClick SubmitForm) "Create link"
 
-        _ ->
-            Button.raised (Button.config |> Button.setDisabled True) "Create link"
+            _ ->
+                Button.raised (Button.config |> Button.setDisabled True) "Create link"
+        ]
 
 
 passwordField : Model -> Html Msg
@@ -197,7 +193,7 @@ passwordField model =
             Maybe.withDefault "" model.password
     in
     div textFieldContainer
-        ([ TextField.filled
+        (TextField.filled
             (TextField.config
                 |> TextField.setType (Just textType)
                 |> TextField.setAttributes [ style "width" "100%", class "material-text-field" ]
@@ -213,8 +209,7 @@ passwordField model =
                         )
                     )
             )
-         ]
-            ++ passwordStrength model.password
+            :: passwordStrength model.password
         )
 
 
@@ -291,7 +286,7 @@ lifetimeSelect model =
     div textFieldContainer
         [ Select.filled
             (Select.config
-                |> Select.setAttributes [ style "width" "100%" ]
+                |> Select.setAttributes []
                 |> Select.setLabel (Just "Lifetime")
                 |> Select.setSelected (Just model.lifetime)
                 |> Select.setOnChange SetLifetime
@@ -301,19 +296,16 @@ lifetimeSelect model =
         ]
 
 
-firstItem : SelectItem (Maybe a) msg
+firstItem : SelectItem (Maybe Lifetime) msg
 firstItem =
     SelectItem.selectItem
-        (SelectItem.config { value = Nothing })
-        [ text "" ]
+        (SelectItem.config { value = Just Lifetime5m })
+        [ text "5 mins" ]
 
 
 remainingItems : List (SelectItem (Maybe Lifetime) msg)
 remainingItems =
     [ SelectItem.selectItem
-        (SelectItem.config { value = Just Lifetime5m })
-        [ text "5 mins" ]
-    , SelectItem.selectItem
         (SelectItem.config { value = Just Lifetime10m })
         [ text "10 mins" ]
     , SelectItem.selectItem
@@ -344,4 +336,5 @@ textFieldContainer : List (Html.Attribute msg)
 textFieldContainer =
     [ class "text-field-container"
     , style "min-width" "200px"
+    , style "margin-top" "20px"
     ]

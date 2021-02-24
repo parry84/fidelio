@@ -25,8 +25,13 @@ defaultLayout inner =
   <div>
     <header>
       <div class="jumbotron text-center">
-        <h1 class="mdc-typography--headline1"><a href="/">🎭 Fidelio</a></h1>
-        <cite>That is the password... for admittance. But may I ask, what is the password... for the house?</cite>
+        <span class="mdc-typography--headline1">
+          <a href="/">🎭 Fidelio</a>
+        </span>
+        <span class="mdc-typography--body2">(beta)</span>
+        <div>
+          <cite>That is the password... for admittance. But may I ask, what is the password... for the house?</cite>
+        </div>
       </div>
     </header>
     <main>

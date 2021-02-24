@@ -111,6 +111,7 @@ metaTags = do
   [hsx|
         <meta charset="utf-8"/>
         <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no"/>
+        <meta name="description" content="A trustable secret sharing app">
         <meta property="og:title" content="Fidelio"/>
         <meta property="og:type" content="website"/>
         <meta property="og:url" content={hostname}/>

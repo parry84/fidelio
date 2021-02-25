@@ -10,9 +10,11 @@ instance Controller SecretsController where
   action SecretsAction = do
     secrets <- query @Secret |> fetch
     render IndexView {..}
+
   action NewSecretAction = do
     let secret = newRecord
     render NewView {..}
+
   action ShowSecretAction {secretId} = do
     maybeSecret <- fetchOneOrNothing secretId
     maybeSecret |> \case
@@ -39,7 +41,13 @@ instance Controller SecretsController where
             renderJson $ outputSecretJSON $ buildOutputSecret secret
           else renderPlain "unauthorized"
       Nothing -> renderPlain "not_found"
+
   action CreateSecretAction = do
+    now <- getCurrentTime
+    expiredSecrets <- query @Secret
+      |> filterWhereSql (#expiresAt, "> now()")
+      |> fetch
+    deleteRecords expiredSecrets
     let secret = newRecord @Secret
     let baseUrl' = baseUrl getConfig
     let lifetime = param @(Text) "lifetime"
@@ -49,13 +57,13 @@ instance Controller SecretsController where
         Left _ -> renderPlain "bad_request"
         Right secret -> do
           secret <- secret |> createRecord
-          let now = get #createdAt secret
           let expiresAt = expiration now lifetime
           let id = get #id secret
           let expiringSecret = set #expiresAt expiresAt secret
           expiringSecret |> updateRecord
           let link = baseUrl' ++ "/ShowSecret?secretId=" ++ show id
           renderJson $ linkToJSON $ Link link
+
   action DeleteSecretAction {secretId} = do
     secret <- fetch secretId
     deleteRecord secret
@@ -74,7 +82,7 @@ expiration now lifetime = case lifetime of
   "5m"  -> addUTCTime (5 * 60) now
   "10m" -> addUTCTime (10 * 60) now
   "15m" -> addUTCTime (15 * 60) now
-  "1h"  -> addUTCTime (3600) now
+  "1h"  -> addUTCTime 3600 now
   "4h"  -> addUTCTime (4 * 3600) now
   "12h" -> addUTCTime (12 * 3600) now
   "1d"  -> addUTCTime (24 * 3600) now

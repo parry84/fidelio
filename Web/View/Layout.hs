@@ -74,14 +74,14 @@ stylesheets = do
     [hsx|
         <link rel="stylesheet" href="/vendor/bootstrap.min.css"/>
         <link rel="stylesheet" href="/vendor/flatpickr.min.css"/>
-        <link href="https://fonts.googleapis.com/css?family=Roboto:300,400,500|Material+Icons" rel="stylesheet">
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500|Material+Icons">
         <link rel="stylesheet" href="https://unpkg.com/material-components-web-elm@6.0.0/dist/material-components-web-elm.min.css">
         <link rel="stylesheet" href="/app.css"/>
     |]
   when
     isProduction
     [hsx|
-        <link href="https://fonts.googleapis.com/css?family=Roboto:300,400,500|Material+Icons" rel="stylesheet">
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500|Material+Icons">
         <link rel="stylesheet" href="https://unpkg.com/material-components-web-elm@6.0.0/dist/material-components-web-elm.min.css">
         <link rel="stylesheet" href="/prod.css"/>
     |]
@@ -95,13 +95,11 @@ scripts = do
         <script src="/vendor/flatpickr.js"></script>
         <script src="/helpers.js"></script>
         <script src="/vendor/morphdom-umd.min.js"></script>
-        <script src="https://unpkg.com/material-components-web-elm@6.0.0/dist/material-components-web-elm.min.js"></script>
         <script defer src="/elm/index.js"></script>
     |]
   when
     isProduction
     [hsx|
-        <script src="https://unpkg.com/material-components-web-elm@6.0.0/dist/material-components-web-elm.min.js"></script>
         <script defer src="/prod.js"></script>
     |]
 

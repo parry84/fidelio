@@ -14,12 +14,10 @@ In order to achieve a higher security level, the passphrase is never sent to the
 - The frontend uses the provided passphrase to decrypt and show the secret
 
 ## Dependencies ##
-* Any recent Linux (we use Debian, Ubuntu, and CentOS)
+* Any recent Linux distro (I use Ubuntu)
 * Nix (unless you are NixOS)
-* Yarn
-* Elm
 
-## Setup  ##
+## Hack on Fidelio  ##
 
 1. Clone the repository
 2. Install Nix and IHP as explained here: https://ihp.digitallyinduced.com/Guide/installation.html
@@ -28,10 +26,20 @@ In order to achieve a higher security level, the passphrase is never sent to the
 yarn add node-elm-compiler parcel-bundler
 yarn add --dev elm-hot concurrently
 ```
-4. launch:
+4. Start development server:
 
 ```bash
 yarn start
+```
+
+5. Build production server:
+```bash
+nix-shell --run 'make build/bin/RunUnoptimizedProdServer'
+```
+
+6. Start production server
+```bash
+nix-shell --run 'build/bin/RunProdServer'
 ```
 
 This project uses `devenv`. To update the environment after changin Nix configuration:
@@ -41,10 +49,12 @@ nix-shell --run 'make -B .envrc'
 
 ## Architecture ##
 
+Tech stack: Haskell, IHP framework, Elm, Yarn, Parcel, PostgresQL
+
 The application is composed by following components:
 - an IHP MVC container
-- an Elm secret generation application: `SecretCreatorWidget`
-- an Elm secret decryption application: `SecretViewerWidget`
+- an Elm secret generation application: `SecretCreator`
+- an Elm secret decryption application: `SecretViewer`
 
 The Elm types are automatically generated from Haskell types. In order to regenerate them:
 ```bash
@@ -53,3 +63,4 @@ yarn gen-types
 
 ## Similar projects ##
 * https://github.com/onetimesecret/onetimesecret
+* https://www.saltify.io/

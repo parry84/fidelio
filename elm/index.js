@@ -1,5 +1,8 @@
 import { Elm } from "./Main.elm";
 
+require("material-components-web-elm/dist/material-components-web-elm.js");
+require("material-components-web-elm/dist/material-components-web-elm.css");
+
 function getFlags(data) {
   return data ? JSON.parse(data) : null;
 }

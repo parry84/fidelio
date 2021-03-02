@@ -1,9 +1,9 @@
-GET http://localhost:8001/Secrets
+GET http://localhost:8001/1qaz
 Accept: application/json
 
 ###
 
-POST http://localhost:8001/Get
+POST http://localhost:8001/get
 Accept: application/json
 Content-Type: application/json
 
@@ -14,7 +14,7 @@ Content-Type: application/json
 
 ###
 
-POST http://localhost:8001/CreateSecret
+POST http://localhost:8001/create
 Accept: application/json
 Content-Type: application/json
 

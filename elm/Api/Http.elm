@@ -2,21 +2,6 @@ module Api.Http exposing (..)
 
 import Api.Generated exposing (..)
 import Http
-import Json.Decode as D
-
-
-getSecretsAction :
-    String
-    -> (Result Http.Error (List Secret) -> msg)
-    -> Cmd msg
-getSecretsAction searchTerm msg =
-    ihpRequest
-        { method = "GET"
-        , headers = []
-        , url = "/Secrets?searchTerm=" ++ searchTerm
-        , body = Http.emptyBody
-        , expect = Http.expectJson msg (D.list secretDecoder)
-        }
 
 
 postSecretAction :
@@ -27,7 +12,7 @@ postSecretAction secret msg =
     ihpRequest
         { method = "POST"
         , headers = []
-        , url = "/CreateSecret"
+        , url = "/create"
         , body = Http.jsonBody <| inputSecretEncoder secret
         , expect = Http.expectJson msg linkDecoder
         }
@@ -41,7 +26,7 @@ getSecretAction password msg =
     ihpRequest
         { method = "POST"
         , headers = []
-        , url = "/Get"
+        , url = "/decrypt"
         , body = Http.jsonBody <| inputPasswordEncoder password
         , expect = Http.expectJson msg outputSecretDecoder
         }

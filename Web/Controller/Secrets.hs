@@ -11,57 +11,51 @@ instance Controller SecretsController where
     secrets <- query @Secret |> fetch
     render IndexView {..}
 
-  action NewSecretAction = do
-    let secret = newRecord
-    render NewView {..}
-
-  action ShowSecretAction {secretId} = do
+  action GetEncryptedSecretAction {secretId} = do
     maybeSecret <- fetchOneOrNothing secretId
     maybeSecret |> \case
       Just secret -> do
         let expiresAt = get #expiresAt secret
+        let currentViews = get #viewCount secret
+        let maxViews = 1
         currentTime <- getCurrentTime
         render $
-          if expiresAt > currentTime
-            then ShowViewOk $ show $ get #id secret
-            else ShowViewError "not_found"
+          if expiresAt > currentTime && currentViews < maxViews
+            then
+              ShowViewOk $ show $ get #id secret
+            else
+              ShowViewError "not_found"
       Nothing -> render $ ShowViewError "not_found"
   --TODO create a type for that error constants
 
-  action GetAction = do
+  action DecryptAction = do
     let id = param @(Id Secret) "id"
-    let givenPassword = param @(Text) "password"
+    let givenPassword = param @Text "password"
     maybeSecret <- fetchOneOrNothing id
     maybeSecret |> \case
       Just secret -> do
         let truePassword = get #password secret
         if truePassword == givenPassword
           then do
-            deleteRecord secret
+            handleMaxViews secret
             renderJson $ outputSecretJSON $ buildOutputSecret secret
-          else renderPlain "unauthorized"
+          else do
+            modify #failedAttemptsCount (+1) secret |> updateRecord
+            renderPlain "unauthorized"
       Nothing -> renderPlain "not_found"
 
   action CreateSecretAction = do
-    now <- getCurrentTime
-    expiredSecrets <- query @Secret
-      |> filterWhereSql (#expiresAt, "> now()")
-      |> fetch
-    deleteRecords expiredSecrets
+    purgeExpiredSecrets
     let secret = newRecord @Secret
-    let baseUrl' = baseUrl getConfig
-    let lifetime = param @(Text) "lifetime"
+    let lifetime = param @Text "lifetime"
     secret
       |> buildSecret
       |> ifValid \case
         Left _ -> renderPlain "bad_request"
         Right secret -> do
           secret <- secret |> createRecord
-          let expiresAt = expiration now lifetime
-          let id = get #id secret
-          let expiringSecret = set #expiresAt expiresAt secret
-          expiringSecret |> updateRecord
-          let link = baseUrl' ++ "/ShowSecret?secretId=" ++ show id
+          setLifetime secret lifetime
+          let link = baseUrl getConfig ++ "/get/" ++ show (get #id secret)
           renderJson $ linkToJSON $ Link link
 
   action DeleteSecretAction {secretId} = do
@@ -69,6 +63,31 @@ instance Controller SecretsController where
     deleteRecord secret
     setSuccessMessage "Secret deleted"
     redirectTo SecretsAction
+
+handleMaxViews :: (?modelContext::ModelContext) => Secret -> IO ()
+handleMaxViews secret = do
+  let maxViews = 1
+  let secret' = modify #viewCount (+1) secret
+  if get #viewCount secret' >= maxViews
+    then
+      deleteRecord secret'
+    else do
+      secret |> updateRecord
+      pure ()
+
+purgeExpiredSecrets :: (?modelContext::ModelContext) => IO ()
+purgeExpiredSecrets = do
+  expiredSecrets <- query @Secret
+    |> filterWhereSql (#expiresAt, "> now()")
+    |> fetch
+  deleteRecords expiredSecrets
+
+setLifetime :: (?modelContext::ModelContext) => Secret -> Text -> IO Secret
+setLifetime secret lifetime = do
+  now <- getCurrentTime
+  let expiresAt = expiration now lifetime
+  let secret' = set #expiresAt expiresAt secret
+  secret' |> updateRecord
 
 instance FromJSON InputPassword where
   parseJSON = withObject "InputPassword" $ \v ->

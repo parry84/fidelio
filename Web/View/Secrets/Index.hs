@@ -11,7 +11,6 @@ instance View IndexView where
                 <li class="breadcrumb-item active"><a href={SecretsAction}>Secrets</a></li>
             </ol>
         </nav>
-        <h1>Index <a href={pathTo NewSecretAction} class="btn btn-primary ml-4">+ New</a></h1>
         <div class="table-responsive">
             <table class="table">
                 <thead>
@@ -32,7 +31,7 @@ instance View IndexView where
 renderSecret secret = [hsx|
     <tr>
         <td>{secret}</td>
-        <td><a href={ShowSecretAction (get #id secret)}>Show</a></td>
+        <td><a href={GetEncryptedSecretAction (get #id secret)}>Show</a></td>
         <td><a href={DeleteSecretAction (get #id secret)} class="js-delete text-muted">Delete</a></td>
     </tr>
 |]

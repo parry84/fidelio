@@ -5,6 +5,7 @@ import           Web.JsonTypes
 import           Web.View.Secrets.Index (IndexView (IndexView, secrets))
 import           Web.View.Secrets.New   (NewView (NewView, secret))
 import           Web.View.Secrets.Show
+import Control.Concurrent
 
 instance Controller SecretsController where
   action SecretsAction = do
@@ -45,6 +46,8 @@ instance Controller SecretsController where
       Nothing -> renderPlain "not_found"
 
   action CreateSecretAction = do
+    threadDelay 1000000
+
     purgeExpiredSecrets
     let secret = newRecord @Secret
     let lifetime = param @Text "lifetime"

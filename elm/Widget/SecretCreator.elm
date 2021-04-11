@@ -1,14 +1,19 @@
 port module Widget.SecretCreator exposing (..)
 
-import Api.Generated exposing (InputSecret, Lifetime(..), Link)
+import Api.Generated exposing (InputSecret, Lifetime(..), Link, PayloadType(..))
 import Api.Http exposing (postSecretAction)
+import Base64
 import Crypto.Hash
 import Crypto.Strings as Strings
+import File exposing (File)
+import File.Select as Select
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import Http
+import Json.Decode as D
 import Material.Button as Button
+import Material.Card as Card
 import Material.HelperText as HelperText
 import Material.Select as Select
 import Material.Select.Item as SelectItem exposing (SelectItem)
@@ -22,17 +27,42 @@ import Time exposing (Posix)
 import Widget.Helper exposing (layout)
 
 
+port copyLink : () -> Cmd msg
+
+
+type alias Plaintext =
+    { payloadType : PayloadType
+    , payload : String
+    }
+
+
 type alias Model =
-    { payload : Maybe String
+    { payload : Maybe Plaintext
     , password : Maybe String
     , lifetime : Maybe Lifetime
     , secret : Maybe Link
     , seed : Maybe Seed
     , passwordVisible : Bool
+    , hover : Bool
+    , preview : Maybe String
     }
 
 
-port copyLink : () -> Cmd msg
+type Msg
+    = NoOp
+    | InitializeSeed Posix
+    | SetPayload String
+    | SetPassword String
+    | SetLifetime (Maybe Lifetime)
+    | SubmitForm
+    | Response (Result Http.Error Link)
+    | SetPasswordVisibility
+    | CopyToClipboard
+    | DragEnter
+    | DragLeave
+    | GotFiles File (List File)
+    | GotPreview String
+    | GotContent (Maybe String)
 
 
 initialModel : Model
@@ -43,6 +73,8 @@ initialModel =
     , secret = Nothing
     , seed = Nothing
     , passwordVisible = True
+    , hover = False
+    , preview = Nothing
     }
 
 
@@ -56,18 +88,6 @@ subscriptions _ =
     Sub.none
 
 
-type Msg
-    = NoOp
-    | InitializeSeed Posix
-    | SetPayload String
-    | SetPassword String
-    | SetLifetime (Maybe Lifetime)
-    | SubmitForm
-    | Response (Result Http.Error Link)
-    | SetPasswordVisibility
-    | CopyToClipboard
-
-
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
@@ -79,8 +99,8 @@ update msg model =
             , Cmd.none
             )
 
-        SetPayload payload ->
-            ( { model | payload = Just payload }, Cmd.none )
+        SetPayload plaintext ->
+            ( { model | payload = Just { payloadType = Message, payload = plaintext } }, Cmd.none )
 
         SetPassword password ->
             ( { model | password = Just password }, Task.perform InitializeSeed Time.now )
@@ -99,7 +119,7 @@ update msg model =
                             Crypto.Hash.sha512 passphrase
 
                         ( ciphertext, _ ) =
-                            case Strings.encrypt seed passphrase plaintext of
+                            case Strings.encrypt seed passphrase plaintext.payload of
                                 Err msg1 ->
                                     ( "Error: " ++ msg1, seed )
 
@@ -107,7 +127,7 @@ update msg model =
                                     textAndSeed
                     in
                     ( { model | secret = Nothing }
-                    , postSecretAction (InputSecret ciphertext hashedPassword lifetime) Response
+                    , postSecretAction (InputSecret plaintext.payloadType ciphertext hashedPassword lifetime) Response
                     )
 
                 ( _, _, _ ) ->
@@ -124,6 +144,34 @@ update msg model =
 
         CopyToClipboard ->
             ( model, copyLink () )
+
+        DragEnter ->
+            ( { model | hover = True }
+            , Cmd.none
+            )
+
+        DragLeave ->
+            ( { model | hover = False }
+            , Cmd.none
+            )
+
+        GotFiles file _ ->
+            ( { model | hover = False }
+            , Cmd.batch <| [ Task.perform GotPreview (File.toUrl file), Task.perform (GotContent << Base64.fromBytes) (File.toBytes file) ]
+            )
+
+        GotPreview url ->
+            ( { model | preview = Just url }
+            , Cmd.none
+            )
+
+        GotContent (Just content) ->
+            ( { model | payload = Just { payloadType = Image, payload = content } }
+            , Cmd.none
+            )
+
+        GotContent Nothing ->
+            ( model, Cmd.none )
 
 
 view : Model -> Html Msg
@@ -215,24 +263,72 @@ passwordField model =
 
 secretField : Model -> Html Msg
 secretField model =
-    let
-        value =
-            Maybe.withDefault "" model.payload
-    in
-    div textFieldContainer
-        [ TextField.filled
-            (TextField.config
-                |> TextField.setType (Just "text")
-                |> TextField.setAttributes [ style "width" "100%", class "material-text-field" ]
-                |> TextField.setPlaceholder (Just "Secret content goes here...")
-                |> TextField.setValue (Just value)
-                |> TextField.setMaxLength (Just 1000)
-                |> TextField.setRequired True
-                |> TextField.setOnInput SetPayload
-                |> TextField.setValid (not (String.isEmpty value))
-            )
-        , helperText
+    case model.payload of
+        Nothing ->
+            secretFieldText ""
+
+        Just payload ->
+            case payload.payloadType of
+                Message ->
+                    secretFieldText payload.payload
+
+                Image ->
+                    Card.card Card.config
+                        { blocks =
+                            [ Card.block <|
+                                div
+                                    [ class "d-flex justify-content-center"
+                                    , style "padding" "30px"
+                                    ]
+                                    [ viewPreview (Maybe.withDefault "" model.preview) ]
+                            ]
+                        , actions = Nothing
+                        }
+
+                _ ->
+                    text "Unsupported format"
+
+
+secretFieldText : String -> Html Msg
+secretFieldText message =
+    div dragContainer
+        [ div textFieldContainer
+            [ TextField.filled
+                (TextField.config
+                    |> TextField.setType (Just "text")
+                    |> TextField.setAttributes [ style "width" "100%", class "material-text-field" ]
+                    |> TextField.setPlaceholder (Just "Secret content goes here...")
+                    |> TextField.setValue (Just message)
+                    |> TextField.setMaxLength (Just 1000)
+                    |> TextField.setRequired True
+                    |> TextField.setOnInput SetPayload
+                    |> TextField.setValid (not (String.isEmpty message))
+                )
+            , helperText
+            ]
         ]
+
+
+dragContainer : List (Attribute Msg)
+dragContainer =
+    [ hijackOn "dragenter" (D.succeed DragEnter)
+    , hijackOn "dragover" (D.succeed DragEnter)
+    , hijackOn "dragleave" (D.succeed DragLeave)
+    , hijackOn "drop" dropDecoder
+    ]
+
+
+viewPreview : String -> Html msg
+viewPreview url =
+    div
+        [ style "width" "60px"
+        , style "height" "60px"
+        , style "background-image" ("url('" ++ url ++ "')")
+        , style "background-position" "center"
+        , style "background-repeat" "no-repeat"
+        , style "background-size" "contain"
+        ]
+        []
 
 
 helperText : Html msg
@@ -338,3 +434,18 @@ textFieldContainer =
     , style "min-width" "200px"
     , style "margin-top" "20px"
     ]
+
+
+dropDecoder : D.Decoder Msg
+dropDecoder =
+    D.at [ "dataTransfer", "files" ] (D.oneOrMore GotFiles File.decoder)
+
+
+hijackOn : String -> D.Decoder msg -> Attribute msg
+hijackOn event decoder =
+    preventDefaultOn event (D.map hijack decoder)
+
+
+hijack : msg -> ( msg, Bool )
+hijack msg =
+    ( msg, True )

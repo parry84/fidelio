@@ -17,6 +17,7 @@ run = do
   let definitions =
         Simplification.simplifyDefinition
           <$> jsonDefinitions @Lifetime
+          <> jsonDefinitions @PayloadType
           <> jsonDefinitions @SecretViewerFlagsJSON
           <> jsonDefinitions @SecretJSON
           <> jsonDefinitions @LinkJSON

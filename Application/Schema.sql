@@ -1,4 +1,5 @@
--- Your database schema. Use the Schema Designer at http://localhost:8001/ to add some tables.
+CREATE TYPE payload_types AS ENUM ('message', 'image', 'audio', 'video', 'file');
+
 CREATE TABLE secrets (
     id UUID DEFAULT uuid_generate_v4() PRIMARY KEY NOT NULL UNIQUE,
     payload TEXT NOT NULL,
@@ -9,5 +10,6 @@ CREATE TABLE secrets (
     failed_attempts_count INT DEFAULT 0 NOT NULL,
     notify_sender BOOLEAN DEFAULT false NOT NULL,
     view_count INT DEFAULT 0 NOT NULL,
-    max_views INT NOT NULL
+    max_views INT NOT NULL,
+    payload_type payload_types DEFAULT 'message' NOT NULL
 );

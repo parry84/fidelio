@@ -1,14 +1,17 @@
-{-# language DeriveAnyClass #-}
+{-# LANGUAGE DeriveAnyClass     #-}
+{-# LANGUAGE StandaloneDeriving #-}
 
 module Web.JsonTypes where
 
-import Generated.Types
-import IHP.ControllerPrelude
-import qualified Data.Aeson as Aeson
-import GHC.Generics (Generic)
-import qualified Generics.SOP as SOP
-import Language.Haskell.To.Elm as LHTE
-import Application.Lib.DerivingViaElm ( ElmType(..) )
+import           Application.Lib.DerivingViaElm (ElmType (..))
+import qualified Data.Aeson                     as Aeson
+import           Data.Char                      as Char (toLower)
+import           GHC.Generics                   (Generic (Rep))
+import           Generated.Types
+import qualified Generics.SOP                   as SOP
+import           IHP.ControllerPrelude
+import           Language.Haskell.To.Elm        as LHTE
+
 
 -- JSON serializable types and functions
 -- for exposing IHP data to Elm and JSON responses
@@ -38,11 +41,11 @@ instance HasElmType Lifetime where
     Just $ deriveElmTypeDefinition @Lifetime LHTE.defaultOptions "Api.Generated.Lifetime"
 instance HasElmEncoder Aeson.Value Lifetime where
     elmEncoderDefinition =
-        Just $ deriveElmJSONEncoder @Lifetime (LHTE.Options lifetimeJ) Aeson.defaultOptions { constructorTagModifier = lifetimeJ } "Api.Generated.encoder"
+        Just $ deriveElmJSONEncoder @Lifetime (LHTE.Options lifetimeJ) Aeson.defaultOptions { constructorTagModifier = lifetimeJ } "Api.Generated.lifetimeEncoder"
 
 instance HasElmDecoder Aeson.Value Lifetime where
     elmDecoderDefinition =
-        Just $ deriveElmJSONDecoder @Lifetime (LHTE.Options lifetimeJ) Aeson.defaultOptions { constructorTagModifier = lifetimeJ } "Api.Generated.decoder"
+        Just $ deriveElmJSONDecoder @Lifetime (LHTE.Options lifetimeJ) Aeson.defaultOptions { constructorTagModifier = lifetimeJ } "Api.Generated.lifetimeDecoder"
 
 lifetimeJ :: String -> String
 lifetimeJ "Lifetime5m"  = "5m"
@@ -54,12 +57,33 @@ lifetimeJ "Lifetime12h" = "12h"
 lifetimeJ "Lifetime1d"  = "1d"
 lifetimeJ "Lifetime3d"  = "3d"
 lifetimeJ "Lifetime7d"  = "7d"
-lifetimeJ s = s
+lifetimeJ s             = s
+
+deriving instance Generic PayloadType
+deriving instance SOP.Generic PayloadType
+deriving instance SOP.HasDatatypeInfo PayloadType
+instance FromJSON PayloadType where
+    parseJSON = genericParseJSON Aeson.defaultOptions
+
+instance ToJSON PayloadType where
+    toJSON = genericToJSON Aeson.defaultOptions { constructorTagModifier = map Char.toLower }
+
+instance HasElmType PayloadType where
+  elmDefinition =
+    Just $ deriveElmTypeDefinition @PayloadType LHTE.defaultOptions "Api.Generated.PayloadType"
+instance HasElmEncoder Aeson.Value PayloadType where
+    elmEncoderDefinition =
+        Just $ deriveElmJSONEncoder @PayloadType (LHTE.Options IHP.ControllerPrelude.id) Aeson.defaultOptions { constructorTagModifier = map Char.toLower } "Api.Generated.payloadTypeEncoder"
+
+instance HasElmDecoder Aeson.Value PayloadType where
+    elmDecoderDefinition =
+        Just $ deriveElmJSONDecoder @PayloadType (LHTE.Options IHP.ControllerPrelude.id) Aeson.defaultOptions { constructorTagModifier = map Char.toLower } "Api.Generated.payloadTypeDecoder"
 
 data SecretJSON = SecretJSON
-  { id :: Text
-  , payload :: Text
-  , password :: Text
+  { id          :: Text
+  , payloadType :: PayloadType
+  , payload     :: Text
+  , password    :: Text
   } deriving ( Generic
              , SOP.Generic
              , SOP.HasDatatypeInfo
@@ -75,13 +99,14 @@ secretToJSON :: Secret -> SecretJSON
 secretToJSON secret =
     SecretJSON {
         id = show $ get #id secret,
+        payloadType = get #payloadType secret,
         payload = get #payload secret,
         password = get #password secret
     }
-    
-data Link = Link {link :: Text} deriving (Eq, Show)
 
-data LinkJSON = LinkJSON
+newtype Link = Link {link :: Text} deriving (Eq, Show)
+
+newtype LinkJSON = LinkJSON
   { link :: Text
   } deriving ( Generic
              , SOP.Generic
@@ -100,9 +125,9 @@ linkToJSON link =
         link = get #link link
     }
 
-data SecretViewerFlags = SecretViewerFlags {secretId :: Text} deriving (Eq, Show)
+newtype SecretViewerFlags = SecretViewerFlags {secretId :: Text} deriving (Eq, Show)
 
-data SecretViewerFlagsJSON = SecretViewerFlagsJSON
+newtype SecretViewerFlagsJSON = SecretViewerFlagsJSON
   { secretId :: Text
   } deriving ( Generic
              , SOP.Generic
@@ -121,35 +146,55 @@ secretViewerFlagsJSON secretViewerFlags =
         secretId = get #secretId secretViewerFlags
     }
 
-data InputSecret = InputSecret {payload :: Text, password :: Text, lifetime :: Lifetime} deriving (Eq, Show)
+data InputSecret = InputSecret {payloadType :: PayloadType, payload :: Text, password :: Text, lifetime :: Lifetime} deriving (Eq, Show)
+
+newtype SnakeCaseJson a = SnakeCaseJson a
+  deriving (Eq, Show, Generic)
+
+instance (GToJSON Zero (Rep a), Generic a) => ToJSON (SnakeCaseJson a) where
+  toJSON (SnakeCaseJson a) = genericToJSON Aeson.defaultOptions { fieldLabelModifier = camelTo2 '_',  constructorTagModifier = camelTo2 '_' } a
 
 data InputSecretJSON = InputSecretJSON
-  { payload :: Text
-  , password :: Text
-  , lifetime :: Lifetime
+  { payloadType :: PayloadType
+  , payload     :: Text
+  , password    :: Text
+  , lifetime    :: Lifetime
   } deriving ( Generic
              , SOP.Generic
              , SOP.HasDatatypeInfo
+             , Aeson.FromJSON
              )
     deriving ( Aeson.ToJSON
-             , Aeson.FromJSON
-             , HasElmType
-             , HasElmDecoder Aeson.Value
-             , HasElmEncoder Aeson.Value)
-    via ElmType "Api.Generated.InputSecret" InputSecretJSON
+             ) via SnakeCaseJson InputSecretJSON
 
 inputSecretToJSON :: InputSecret -> InputSecretJSON
+
 inputSecretToJSON secret =
     InputSecretJSON {
+        payloadType = get #payloadType secret,
         payload = get #payload secret,
         password = get #password secret,
         lifetime = get #lifetime secret
     }
 
+
+instance HasElmType InputSecretJSON where
+  elmDefinition =
+    Just $ deriveElmTypeDefinition @InputSecretJSON LHTE.defaultOptions "Api.Generated.InputSecret"
+
+instance HasElmEncoder Aeson.Value InputSecretJSON where
+    elmEncoderDefinition =
+        Just $ deriveElmJSONEncoder @InputSecretJSON (LHTE.Options IHP.ControllerPrelude.id) Aeson.defaultOptions { fieldLabelModifier = camelTo2 '_',  constructorTagModifier = camelTo2 '_' } "Api.Generated.inputSecretEncoder"
+
+instance HasElmDecoder Aeson.Value InputSecretJSON where
+    elmDecoderDefinition =
+        Just $ deriveElmJSONDecoder @InputSecretJSON (LHTE.Options IHP.ControllerPrelude.id) Aeson.defaultOptions { fieldLabelModifier = camelTo2 '_',  constructorTagModifier = camelTo2 '_' } "Api.Generated.inputSecretDecoder"
+
+
 data InputPassword = InputPassword {id :: Text, password :: Text} deriving (Eq, Show)
 
 data InputPasswordJSON = InputPasswordJSON
-  { id :: Text
+  { id       :: Text
   , password :: Text
   } deriving ( Generic
              , SOP.Generic
@@ -169,10 +214,11 @@ inputPasswordJSON password =
         password = get #password password
     }
 
-data OutputSecret = OutputSecret {payload :: Text} deriving (Eq, Show)
+data OutputSecret = OutputSecret {payloadType :: PayloadType, payload :: Text} deriving (Eq, Show)
 
 data OutputSecretJSON = OutputSecretJSON
-  { payload :: Text
+  { payloadType :: PayloadType
+  , payload     :: Text
   } deriving ( Generic
              , SOP.Generic
              , SOP.HasDatatypeInfo
@@ -187,5 +233,6 @@ data OutputSecretJSON = OutputSecretJSON
 outputSecretJSON :: OutputSecret -> OutputSecretJSON
 outputSecretJSON secret =
     OutputSecretJSON {
+        payloadType = get #payloadType secret,
         payload = get #payload secret
     }

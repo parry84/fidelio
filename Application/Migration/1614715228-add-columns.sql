@@ -1,4 +1,3 @@
--- Write your SQL migration code in here
 ALTER TABLE secrets 
 ADD COLUMN sender TEXT DEFAULT NULL,
 ADD COLUMN failed_attempts_count INT DEFAULT 0 NOT NULL,

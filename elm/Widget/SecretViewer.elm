@@ -1,6 +1,6 @@
 port module Widget.SecretViewer exposing (..)
 
-import Api.Generated exposing (InputPassword, OutputSecret, SecretViewerFlags)
+import Api.Generated exposing (InputPassword, OutputSecret, PayloadType(..), SecretViewerFlags)
 import Api.Http exposing (getSecretAction)
 import Crypto.Hash
 import Crypto.Strings as Strings
@@ -9,6 +9,7 @@ import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import Http
 import Material.Button as Button
+import Material.Card as Card
 import Material.HelperText as HelperText
 import Material.TextField as TextField
 import Material.TextField.Icon as TextFieldIcon
@@ -16,11 +17,17 @@ import Material.Typography as Typography
 import Widget.Helper exposing (layout)
 
 
+type alias Plaintext =
+    { payloadType : PayloadType
+    , payload : String
+    }
+
+
 type alias Model =
     { secretId : String
     , chipertext : Maybe String
     , password : Maybe String
-    , plaintext : Maybe String
+    , plaintext : Maybe Plaintext
     , passwordVisible : Bool
     , errors : List Http.Error
     }
@@ -93,7 +100,7 @@ update msg model =
                                 Ok textAndSeed ->
                                     textAndSeed
                     in
-                    ( { model | plaintext = Just plaintext }, Cmd.none )
+                    ( { model | plaintext = Just { payloadType = response.payloadType, payload = plaintext } }, Cmd.none )
 
                 _ ->
                     ( model, Cmd.none )
@@ -115,8 +122,8 @@ view model =
             Nothing ->
                 decryptView model
 
-            Just secret ->
-                secretView secret
+            Just plaintext ->
+                secretView plaintext
         )
 
 
@@ -129,13 +136,41 @@ decryptView model =
     ]
 
 
-secretView : String -> List (Html Msg)
+secretView : Plaintext -> List (Html Msg)
 secretView plaintext =
     [ h4 [ Typography.headline4 ] [ text "🔑 The secret:" ]
-    , pre [ id "secret", Typography.button ] [ text plaintext ]
+    , case plaintext.payloadType of
+        Message ->
+            pre [ id "secret", Typography.button ] [ text plaintext.payload ]
+
+        Image ->
+            Card.card Card.config
+                { blocks =
+                    [ Card.block <|
+                        div
+                            [ class "d-flex justify-content-center"
+                            , style "padding" "30px"
+                            ]
+                            [ viewPreview plaintext.payload ]
+                    ]
+                , actions = Nothing
+                }
+
+        _ ->
+            text "Unsupported format"
     , Button.raised (Button.config |> Button.setOnClick CopyToClipboard) "Copy to clipboard"
     , p [ Typography.body2 ] [ text "pay attention: we will show it only once." ]
     ]
+
+
+viewPreview : String -> Html msg
+viewPreview url =
+    img
+        [ style "width" "60px"
+        , style "height" "60px"
+        , src ("data:image/png;base64," ++ url)
+        ]
+        []
 
 
 buttonView : Model -> Html Msg

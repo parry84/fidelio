@@ -1,10 +1,12 @@
 module Web.Controller.Secrets where
 
+import           Control.Concurrent
 import           Web.Controller.Prelude
 import           Web.JsonTypes
 import           Web.View.Secrets.Index (IndexView (IndexView, secrets))
 import           Web.View.Secrets.New   (NewView (NewView, secret))
 import           Web.View.Secrets.Show
+
 
 instance Controller SecretsController where
   action SecretsAction = do
@@ -48,6 +50,7 @@ instance Controller SecretsController where
     purgeExpiredSecrets
     let secret = newRecord @Secret
     let lifetime = param @Text "lifetime"
+    let payloadType = param @PayloadType "payload_type"
     secret
       |> buildSecret
       |> ifValid \case
@@ -55,6 +58,7 @@ instance Controller SecretsController where
         Right secret -> do
           secret <- secret |> createRecord
           setLifetime secret lifetime
+          setPayloadType secret payloadType
           let link = baseUrl getConfig ++ "/get/" ++ show (get #id secret)
           renderJson $ linkToJSON $ Link link
 
@@ -89,6 +93,11 @@ setLifetime secret lifetime = do
   let secret' = set #expiresAt expiresAt secret
   secret' |> updateRecord
 
+setPayloadType :: (?modelContext::ModelContext) => Secret -> PayloadType  -> IO Secret
+setPayloadType secret payloadType = do
+  let secret' = set #payloadType payloadType secret
+  secret' |> updateRecord
+
 instance FromJSON InputPassword where
   parseJSON = withObject "InputPassword" $ \v ->
     InputPassword
@@ -114,4 +123,5 @@ buildSecret secret =
     |> fill @'["payload"]
     |> fill @'["password"]
 
-buildOutputSecret secret = OutputSecret (get #payload secret)
+buildOutputSecret :: Secret -> OutputSecret
+buildOutputSecret secret = OutputSecret (get #payloadType secret) (get #payload secret)

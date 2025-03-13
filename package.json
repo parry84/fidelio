@@ -26,7 +26,7 @@
   "homepage": "https://github.com/parry84/fidelio#readme",
   "dependencies": {
     "@material/typography": "^9.0.0",
-    "material-components-web-elm": "6.0.0",
+    "material-components-web-elm": "7.0.0",
     "node-elm-compiler": "^5.0.5",
     "parcel-bundler": "^1.12.4"
   },
